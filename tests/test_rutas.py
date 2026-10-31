@@ -3,6 +3,8 @@ from types import SimpleNamespace
 
 from supabase_auth.errors import AuthApiError
 
+from puntolisto import create_app
+from puntolisto.config import CLAVE_DESARROLLO
 from conftest import iniciar_sesion, obtener_csrf, sesion_falsa
 
 
@@ -29,7 +31,26 @@ COMERCIO = {"id": 1, "nombre": "Lavandería Ana", "abreviatura": "LAV",
 # ------------------------------------------------------------------ básicas
 def test_salud(cliente):
     datos = cliente.get("/salud").get_json()
+    assert datos["flask_secret_configurada"]
     assert datos["supabase_url_configurada"] and datos["supabase_key_configurada"]
+
+
+def test_en_vercel_sin_claves_no_tumba_la_app(monkeypatch):
+    monkeypatch.setattr("puntolisto.EN_VERCEL", True)
+    app = create_app({
+        "TESTING": True,
+        "SECRET_KEY": CLAVE_DESARROLLO,
+        "SUPABASE_URL": "",
+        "SUPABASE_KEY": "",
+    })
+    cliente_v = app.test_client()
+    salud = cliente_v.get("/salud")
+    assert salud.status_code == 200
+    aviso = cliente_v.get("/entrar")
+    assert aviso.status_code == 503
+    texto = aviso.get_data(as_text=True)
+    assert "FLASK_SECRET_KEY" in texto
+    assert "SUPABASE_URL" in texto
 
 
 def test_panel_sin_sesion_redirige_a_entrar(cliente):
