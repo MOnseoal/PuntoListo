@@ -43,3 +43,33 @@ def correo_valido(correo: str) -> bool:
 
 def nombre_valido(nombre: str) -> bool:
     return 2 <= len((nombre or "").strip()) <= 80
+
+
+PRECIO_MAXIMO = 99_999_999.99
+
+
+def leer_numero(texto: str) -> float | None:
+    """'3,5' o '3.5' -> 3.5. Vacío o inválido -> None."""
+    limpio = (texto or "").strip().replace(",", ".").replace("$", "").replace(" ", "")
+    if not limpio:
+        return None
+    try:
+        valor = float(limpio)
+    except ValueError:
+        return None
+    if valor != valor or valor in (float("inf"), float("-inf")):  # NaN o infinito
+        return None
+    return valor
+
+
+def precio_valido(valor: float | None) -> bool:
+    return valor is not None and 0 <= valor <= PRECIO_MAXIMO
+
+
+def cantidad_valida(valor: float | None, tipo_cobro: str) -> bool:
+    """Por kilo admite decimales (3.5 kg); por pieza o ajuste solo enteros."""
+    if valor is None or valor <= 0 or valor > 9999:
+        return False
+    if tipo_cobro == "kilo":
+        return round(valor, 2) == valor
+    return valor == int(valor)

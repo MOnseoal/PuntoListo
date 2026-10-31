@@ -7,8 +7,12 @@
   <p>{{ GIROS[comercio.giro] }} · Folios {{ comercio.abreviatura }}-0001</p>
 </hgroup>
 
-{# El botón se conecta en ACT-15 (órdenes con folio) #}
-<button disabled style="width:100%; margin-bottom:1rem">+ Nueva orden (próximamente)</button>
+<a href="{{ url_for('ordenes.nueva') }}" role="button" class="boton-ancho">+ Nueva orden</a>
+
+<div class="enlaces">
+  <a href="{{ url_for('negocio.catalogo') }}" role="button" class="secondary outline">Catálogo</a>
+  <a href="{{ url_for('ordenes.entregadas') }}" role="button" class="secondary outline">Entregadas</a>
+</div>
 
 <section class="resumen" aria-label="Resumen de órdenes">
   {% for estado, lista in grupos.items() %}
@@ -21,18 +25,19 @@
 
 {% if total == 0 %}
 <article>
-  <p>Aún no tienes órdenes. Cuando registres una, aparecerá aquí agrupada por estado.</p>
+  <p>No tienes órdenes pendientes. Registra una con «+ Nueva orden».</p>
 </article>
 {% else %}
-  {% for estado, lista in grupos.items() if lista %}
+  {# Primero las listas para entregar, luego en proceso y al final las recién recibidas #}
+  {% for estado in ["listo", "en_proceso", "recibido"] if grupos[estado] %}
   <article>
-    <header><strong>{{ ESTADOS[estado] }}</strong> ({{ lista|length }})</header>
-    {% for orden in lista %}
-    <div class="orden">
+    <header><span class="estado estado-{{ estado }}">{{ ESTADOS[estado] }}</span> ({{ grupos[estado]|length }})</header>
+    {% for orden in grupos[estado] %}
+    <a class="fila" href="{{ url_for('ordenes.detalle', orden_id=orden.id) }}">
       <span><strong>{{ orden.folio }}</strong><br>
         <small>{{ orden.clientes.nombre if orden.clientes else "" }}</small></span>
       <small>{% if orden.fecha_entrega %}Entrega {{ orden.fecha_entrega|fecha_corta }}{% endif %}</small>
-    </div>
+    </a>
     {% endfor %}
   </article>
   {% endfor %}

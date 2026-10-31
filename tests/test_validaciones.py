@@ -39,3 +39,16 @@ def test_correo_valido():
     assert v.correo_valido("ana@correo.mx")
     assert not v.correo_valido("ana@correo")
     assert not v.correo_valido("")
+
+
+@pytest.mark.parametrize("entrada, esperado", [
+    ("529931234567", "993 123 4567"),
+    ("9931234567", "993 123 4567"),
+    ("993 123 4567", "993 123 4567"),
+    ("993-12", "993-12"),
+    ("", ""),
+    (None, ""),
+])
+def test_telefono_legible(entrada, esperado):
+    from puntolisto.etiquetas import telefono_legible
+    assert telefono_legible(entrada) == esperado

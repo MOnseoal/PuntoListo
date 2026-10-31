@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+{% block titulo %}Entregadas{% endblock %}
+
+{% block contenido %}
+<hgroup>
+  <h1>Órdenes entregadas</h1>
+  <p>Las 50 más recientes.</p>
+</hgroup>
+
+{% if ordenes %}
+<article>
+  {% for o in ordenes %}
+  <a class="fila" href="{{ url_for('ordenes.detalle', orden_id=o.id) }}">
+    <span><strong>{{ o.folio }}</strong><br><small>{{ o.clientes.nombre if o.clientes else "" }}</small></span>
+    <small>Entregada {{ o.actualizado_en|fecha_corta }}</small>
+  </a>
+  {% endfor %}
+</article>
+{% else %}
+<article><p>Aún no has entregado órdenes.</p></article>
+{% endif %}
+
+<a href="{{ url_for('panel.inicio') }}">← Volver al panel</a>
+{% endblock %}

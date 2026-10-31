@@ -1,0 +1,71 @@
+{% extends "base.html" %}
+{% block titulo %}Orden {{ orden.folio }}{% endblock %}
+
+{% block contenido %}
+<hgroup>
+  <h1>{{ orden.folio }}</h1>
+  <p><span class="estado estado-{{ orden.estado }}">{{ ESTADOS[orden.estado] }}</span></p>
+</hgroup>
+
+{# ---------- Aviso por WhatsApp (función h): aparece cuando la orden está Lista ---------- #}
+{% if orden.estado == "listo" %}
+  {% if enlace_wa %}
+  <a href="{{ enlace_wa }}" target="_blank" rel="noopener" role="button" class="boton-ancho whatsapp">
+    Avisar por WhatsApp
+  </a>
+  {% else %}
+  <p class="mensaje info">El cliente no tiene teléfono registrado para avisarle.</p>
+  {% endif %}
+{% endif %}
+
+{# ---------- Cambio de estado (función g) ---------- #}
+{% if siguiente %}
+<form method="post" action="{{ url_for('ordenes.cambiar_estado', orden_id=orden.id) }}">
+  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+  <input type="hidden" name="estado" value="{{ siguiente }}">
+  <button type="submit" class="{{ 'secondary' if orden.estado == 'listo' else '' }}">
+    Marcar como «{{ ESTADOS[siguiente] }}»
+  </button>
+</form>
+{% endif %}
+
+<article>
+  <header><strong>Cliente</strong></header>
+  {% if orden.clientes %}
+  <p>{{ orden.clientes.nombre }}<br>
+    <small>{{ orden.clientes.telefono|telefono_legible }}</small></p>
+  {% endif %}
+</article>
+
+<article>
+  <header><strong>Servicios</strong></header>
+  {% for linea in orden.orden_servicios %}
+  <div class="fila">
+    <span>{{ linea.servicios.nombre if linea.servicios else "Servicio" }}</span>
+    <small>{{ cantidad_legible(linea.cantidad, linea.servicios.tipo_cobro if linea.servicios else "") }}
+      × {{ linea.precio_unitario|dinero }}</small>
+  </div>
+  {% endfor %}
+</article>
+
+<article>
+  <header><strong>Datos de la orden</strong></header>
+  <p>
+    Recibida: {{ orden.creado_en|fecha_corta }}<br>
+    Entrega prometida: {{ orden.fecha_entrega|fecha_corta if orden.fecha_entrega else "Sin fecha" }}
+    {% if orden.notas %}<br>Notas: {{ orden.notas }}{% endif %}
+  </p>
+</article>
+
+{% if anterior %}
+<form method="post" action="{{ url_for('ordenes.cambiar_estado', orden_id=orden.id) }}">
+  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+  <input type="hidden" name="estado" value="{{ anterior }}">
+  <button type="submit" class="secondary outline boton-chico">
+    ↶ Regresar a «{{ ESTADOS[anterior] }}» (si te equivocaste)
+  </button>
+</form>
+{% endif %}
+
+<p style="margin-top:1rem"><a href="{{ url_for('panel.inicio') }}">← Volver al panel</a></p>
+{% endblock %}

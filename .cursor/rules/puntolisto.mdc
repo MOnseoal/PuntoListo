@@ -69,8 +69,24 @@ docs/                       -> ACT-11_base_de_datos.md y sql/001_esquema.sql
 ## Estado del trabajo
 - [x] ACT-11 base de datos (Supabase)
 - [x] ACT-12 autenticación, estructura base y panel principal
-- [ ] ACT-13 módulo de clientes (alta, edición, consulta, búsqueda)
-- [ ] ACT-14 catálogo de servicios configurable (editar ejemplos, agregar, desactivar)
-- [ ] ACT-15 creación de órdenes con folio
-- [ ] ACT-17 cambio de estados
-- [ ] ACT-18 botón y mensaje wa.me
+- [x] ACT-13 módulo de clientes (alta, edición, consulta, búsqueda; sin borrar para no romper el historial)
+- [x] ACT-14 catálogo de servicios configurable (agregar, editar, activar/desactivar; sin borrar)
+- [x] ACT-15 creación de órdenes con folio (RPC crear_orden; "+ Cliente nuevo" regresa a la orden)
+- [x] ACT-17 cambio de estados (avanzar uno o regresar uno si hubo error)
+- [x] ACT-18 botón y mensaje wa.me (aparece en estado "listo"; módulo puntolisto/avisos)
+- [ ] ACT-16 / ACT-19 / ACT-20 pruebas manuales (lavandería, sastrería, Android) y corrección de errores
+
+## Mapa de rutas
+| URL | Qué hace |
+|---|---|
+| `/entrar`, `/registro`, `/salir` | Autenticación (auth) |
+| `/negocio/configurar` | Alta del negocio (una sola vez) |
+| `/negocio/catalogo`, `/negocio/catalogo/nuevo`, `/negocio/catalogo/<id>/editar`, `/negocio/catalogo/<id>/activo` | Catálogo |
+| `/` | Panel: órdenes activas agrupadas por estado |
+| `/clientes/`, `/clientes/nuevo[?volver=orden]`, `/clientes/<id>/editar` | Clientes |
+| `/ordenes/nueva[?cliente_id=]`, `/ordenes/<id>`, `/ordenes/<id>/estado`, `/ordenes/entregadas` | Órdenes, estados y aviso |
+| `/salud` | Revisión de configuración (sin datos sensibles) |
+
+## Funciones diferidas: cómo se agregarían después (NO hacerlas ahora)
+- e/f tarifa y anticipo: los precios ya se guardan en `orden_servicios.precio_unitario`; total = suma de cantidad × precio.
+- Búsqueda sin acentos: extensión `unaccent` en un script `002_*.sql`.

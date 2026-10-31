@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+{% block titulo %}{{ "Editar cliente" if editando else "Nuevo cliente" }}{% endblock %}
+
+{% block contenido %}
+<article>
+  <header>
+    <h1>{{ "Editar cliente" if editando else "Nuevo cliente" }}</h1>
+    <p>El teléfono se usa para avisarle por WhatsApp cuando su orden esté lista.</p>
+  </header>
+
+  <form method="post" novalidate>
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+    <label for="nombre">Nombre</label>
+    <input type="text" id="nombre" name="nombre" value="{{ datos.nombre }}" maxlength="80"
+           autocomplete="off" autocapitalize="words" placeholder="Ej. María López" required>
+
+    <label for="telefono">WhatsApp (10 dígitos)</label>
+    <input type="tel" id="telefono" name="telefono" value="{{ datos.telefono|telefono_legible }}"
+           inputmode="numeric" autocomplete="off" placeholder="Ej. 993 123 4567" required>
+
+    <button type="submit">{{ "Guardar cambios" if editando else "Guardar cliente" }}</button>
+  </form>
+
+  <footer>
+    <a href="{{ url_for('clientes.lista') }}">← Volver a clientes</a>
+  </footer>
+</article>
+{% endblock %}

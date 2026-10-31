@@ -1,7 +1,6 @@
 """Blueprint del panel principal (función c): órdenes agrupadas por estado."""
 from flask import Blueprint, current_app, g, render_template
 
-from ..config import CLAVE_DESARROLLO
 from ..modelos import ordenes
 from ..seguridad import login_requerido, negocio_requerido
 
@@ -23,7 +22,6 @@ def salud():
     """Revisión rápida de que la configuración llegó a Vercel (no muestra las claves)."""
     return {
         "app": "PuntoListo",
-        "flask_secret_configurada": current_app.config["SECRET_KEY"] != CLAVE_DESARROLLO,
         "supabase_url_configurada": bool(current_app.config["SUPABASE_URL"]),
         "supabase_key_configurada": bool(current_app.config["SUPABASE_KEY"]),
     }

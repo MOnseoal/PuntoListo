@@ -1,0 +1,10 @@
+{% extends "base.html" %}
+{% block titulo %}No encontrado{% endblock %}
+
+{% block contenido %}
+<article>
+  <h1>No encontramos eso</h1>
+  <p>La página o el registro que buscas no existe o no pertenece a tu negocio.</p>
+  <a href="{{ url_for('panel.inicio') }}" role="button">Ir al panel</a>
+</article>
+{% endblock %}

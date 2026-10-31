@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+{% block titulo %}Catálogo{% endblock %}
+
+{% block contenido %}
+<hgroup>
+  <h1>Catálogo de servicios</h1>
+  <p>Lo que aparece al registrar una orden. Los precios se guardan en cada orden.</p>
+</hgroup>
+
+<a href="{{ url_for('negocio.servicio_nuevo') }}" role="button" class="boton-ancho">+ Nuevo servicio</a>
+
+{% if servicios %}
+<article>
+  {% for s in servicios %}
+  <div class="fila {% if not s.activo %}inactivo{% endif %}">
+    <a href="{{ url_for('negocio.servicio_editar', servicio_id=s.id) }}" class="enlace-fila">
+      <strong>{{ s.nombre }}</strong><br>
+      <small>{{ TIPOS_COBRO[s.tipo_cobro] }} · {{ s.precio|dinero }}{% if not s.activo %} · Desactivado{% endif %}</small>
+    </a>
+    <form method="post" action="{{ url_for('negocio.servicio_activo', servicio_id=s.id) }}">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+      <input type="hidden" name="activo" value="{{ '0' if s.activo else '1' }}">
+      <button type="submit" class="secondary outline boton-chico">{{ "Desactivar" if s.activo else "Activar" }}</button>
+    </form>
+  </div>
+  {% endfor %}
+</article>
+{% else %}
+<article><p>Aún no tienes servicios. Agrega el primero.</p></article>
+{% endif %}
+
+<a href="{{ url_for('panel.inicio') }}">← Volver al panel</a>
+{% endblock %}

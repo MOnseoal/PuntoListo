@@ -1,0 +1,66 @@
+{% extends "base.html" %}
+{% block titulo %}Nueva orden{% endblock %}
+
+{% block contenido %}
+<hgroup>
+  <h1>Nueva orden</h1>
+  <p>El folio se asigna solo al guardar.</p>
+</hgroup>
+
+{% if not catalogo %}
+<article>
+  <p>No tienes servicios activos. Agrega o activa al menos uno en tu catálogo.</p>
+  <a href="{{ url_for('negocio.catalogo') }}" role="button">Ir al catálogo</a>
+</article>
+{% else %}
+<form method="post" novalidate>
+  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+  <article>
+    <header><strong>1. Cliente</strong></header>
+    {% if clientes %}
+    <label for="cliente_id">Cliente</label>
+    <select id="cliente_id" name="cliente_id" required>
+      <option value="">Elige un cliente…</option>
+      {% for c in clientes %}
+      <option value="{{ c.id }}" {% if valores.cliente_id|string == c.id|string %}selected{% endif %}>
+        {{ c.nombre }} · {{ c.telefono|telefono_legible }}
+      </option>
+      {% endfor %}
+    </select>
+    {% else %}
+    <p>Aún no tienes clientes.</p>
+    {% endif %}
+    <a href="{{ url_for('clientes.nuevo', volver='orden') }}">+ Cliente nuevo</a>
+  </article>
+
+  <article>
+    <header><strong>2. Servicios</strong> <small>(escribe la cantidad solo en los que lleva)</small></header>
+    {% for s in catalogo %}
+    <div class="servicio-orden">
+      <label for="cantidad_{{ s.id }}">
+        {{ s.nombre }}<br>
+        <small>{{ TIPOS_COBRO[s.tipo_cobro] }} · {{ s.precio|dinero }}</small>
+      </label>
+      <input type="text" id="cantidad_{{ s.id }}" name="cantidad_{{ s.id }}"
+             value="{{ valores.cantidades.get(s.id|string, '') }}"
+             inputmode="{{ 'decimal' if s.tipo_cobro == 'kilo' else 'numeric' }}"
+             placeholder="{{ 'kg' if s.tipo_cobro == 'kilo' else 'cant.' }}">
+    </div>
+    {% endfor %}
+  </article>
+
+  <article>
+    <header><strong>3. Entrega</strong> <small>(opcional)</small></header>
+    <label for="fecha_entrega">Fecha prometida de entrega</label>
+    <input type="date" id="fecha_entrega" name="fecha_entrega" value="{{ valores.fecha_entrega }}">
+
+    <label for="notas">Notas</label>
+    <textarea id="notas" name="notas" maxlength="500" rows="2"
+              placeholder="Ej. Sin suavizante, mancha en la manga…">{{ valores.notas }}</textarea>
+  </article>
+
+  <button type="submit">Registrar orden</button>
+</form>
+{% endif %}
+{% endblock %}

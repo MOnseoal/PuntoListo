@@ -19,6 +19,28 @@
     .orden { display: flex; justify-content: space-between; gap: .5rem; padding: .5rem 0;
              border-bottom: 1px solid var(--pico-muted-border-color); }
     .orden:last-child { border-bottom: 0; }
+    .boton-ancho { display: block; width: 100%; margin-bottom: 1rem; }
+    .fila { display: flex; justify-content: space-between; align-items: center; gap: .5rem;
+            padding: .75rem 0; border-bottom: 1px solid var(--pico-muted-border-color);
+            color: inherit; text-decoration: none; }
+    .fila:last-child { border-bottom: 0; }
+    .fila form { margin: 0; }
+    .enlace-fila { color: inherit; text-decoration: none; flex: 1; }
+    .inactivo { opacity: .55; }
+    .boton-chico { padding: .3rem .6rem; font-size: .85rem; margin: 0; width: auto; }
+    .enlaces { display: flex; gap: .5rem; margin-bottom: 1rem; }
+    .enlaces a { flex: 1; margin: 0; }
+    .estado { display: inline-block; padding: .15rem .6rem; border-radius: 1rem; font-size: .85rem;
+              font-weight: 600; }
+    .estado-recibido   { background: #e1effe; color: #1e429f; }
+    .estado-en_proceso { background: #fdf6b2; color: #723b13; }
+    .estado-listo      { background: #def7ec; color: #03543f; }
+    .estado-entregado  { background: #f3f4f6; color: #374151; }
+    .whatsapp { background: #25d366; border-color: #25d366; color: #fff; }
+    .servicio-orden { display: grid; grid-template-columns: 1fr 6.5rem; gap: .5rem;
+                      align-items: center; padding: .5rem 0;
+                      border-bottom: 1px solid var(--pico-muted-border-color); }
+    .servicio-orden input { margin: 0; }
     nav form { margin: 0; }
     nav button { padding: .35rem .75rem; margin: 0; }
   </style>
@@ -29,6 +51,7 @@
       <ul><li><a class="marca" href="{{ url_for('panel.inicio') }}">PuntoListo</a></li></ul>
       {% if session.get('access_token') %}
       <ul>
+        <li><a href="{{ url_for('clientes.lista') }}">Clientes</a></li>
         <li>
           <form method="post" action="{{ url_for('auth.salir') }}">
             <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">

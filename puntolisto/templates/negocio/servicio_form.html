@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+{% block titulo %}{{ "Editar servicio" if editando else "Nuevo servicio" }}{% endblock %}
+
+{% block contenido %}
+<article>
+  <header>
+    <h1>{{ "Editar servicio" if editando else "Nuevo servicio" }}</h1>
+    {% if editando %}<p>Si cambias el precio, las órdenes anteriores conservan el que tenían.</p>{% endif %}
+  </header>
+
+  <form method="post" novalidate>
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+    <label for="nombre">Nombre del servicio</label>
+    <input type="text" id="nombre" name="nombre" value="{{ datos.nombre }}" maxlength="80"
+           placeholder="Ej. Lavado por kilo" required>
+
+    <fieldset>
+      <legend>¿Cómo se cobra?</legend>
+      {% for clave, texto in TIPOS_COBRO.items() %}
+      <label>
+        <input type="radio" name="tipo_cobro" value="{{ clave }}" {% if datos.tipo_cobro == clave %}checked{% endif %}>
+        {{ texto }}
+      </label>
+      {% endfor %}
+    </fieldset>
+
+    <label for="precio">Precio (MXN)</label>
+    <input type="text" id="precio" name="precio" value="{{ datos.precio }}" inputmode="decimal"
+           placeholder="Ej. 45">
+    <p class="ayuda">Precio por kilo, por pieza o por ajuste, según lo que elegiste.</p>
+
+    <button type="submit">{{ "Guardar cambios" if editando else "Agregar servicio" }}</button>
+  </form>
+
+  <footer><a href="{{ url_for('negocio.catalogo') }}">← Volver al catálogo</a></footer>
+</article>
+{% endblock %}

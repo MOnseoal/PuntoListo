@@ -1,0 +1,37 @@
+{% extends "base.html" %}
+{% block titulo %}Clientes{% endblock %}
+
+{% block contenido %}
+<hgroup>
+  <h1>Clientes</h1>
+  <p>{{ clientes|length }} {{ "cliente" if clientes|length == 1 else "clientes" }}{% if busqueda %} encontrados{% endif %}</p>
+</hgroup>
+
+<a href="{{ url_for('clientes.nuevo') }}" role="button" class="boton-ancho">+ Nuevo cliente</a>
+
+<form method="get" role="search">
+  <input type="search" name="q" value="{{ busqueda }}" placeholder="Nombre o teléfono"
+         aria-label="Buscar cliente">
+  <button type="submit">Buscar</button>
+</form>
+
+{% if clientes %}
+<article>
+  {% for cliente in clientes %}
+  <a class="fila" href="{{ url_for('clientes.editar', cliente_id=cliente.id) }}">
+    <strong>{{ cliente.nombre }}</strong>
+    <small>{{ cliente.telefono|telefono_legible }}</small>
+  </a>
+  {% endfor %}
+</article>
+{% elif busqueda %}
+<article>
+  <p>No hay clientes que coincidan con "{{ busqueda }}".</p>
+  <a href="{{ url_for('clientes.lista') }}">Ver todos</a>
+</article>
+{% else %}
+<article>
+  <p>Aún no tienes clientes. Agrega el primero con su nombre y su WhatsApp.</p>
+</article>
+{% endif %}
+{% endblock %}
