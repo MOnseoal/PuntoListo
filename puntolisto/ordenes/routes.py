@@ -3,6 +3,8 @@
 ACT-15 (función d): nueva orden con folio, cliente y servicios del catálogo.
 ACT-17 (función g): cambio de estado Recibido → En proceso → Listo → Entregado.
 ACT-18 (función h): botón que abre WhatsApp con el aviso de "lista".
+Mejoras: lista con buscador (folio, nombre o teléfono) y filtros, y
+acciones rápidas desde las tarjetas que regresan a la página de origen.
 """
 from datetime import date
 
@@ -11,11 +13,30 @@ from postgrest.exceptions import APIError
 
 from .. import avisos
 from .. import validaciones as v
-from ..etiquetas import ESTADOS
+from ..etiquetas import ESTADOS, hoy_mexico
 from ..modelos import clientes, ordenes, servicios
 from ..seguridad import login_requerido, negocio_requerido
+from . import presentacion
 
 bp = Blueprint("ordenes", __name__, url_prefix="/ordenes")
+
+# Filtros de la lista: clave -> (texto del chip, estados que incluye)
+FILTROS = {
+    "activas": ("Pendientes", ordenes.ESTADOS_ACTIVOS),
+    "atencion": ("Urgentes", ("recibido", "en_proceso")),
+    "recibido": ("Recibidas", ("recibido",)),
+    "en_proceso": ("En proceso", ("en_proceso",)),
+    "listo": ("Listas", ("listo",)),
+    "entregado": ("Entregadas", ("entregado",)),
+}
+
+
+def _ruta_segura(destino: str | None, por_defecto: str) -> str:
+    """Solo permite regresar a páginas de esta misma app (evita redirecciones a otros sitios)."""
+    destino = (destino or "").rstrip("?")
+    if destino.startswith("/") and not destino.startswith("//") and "\\" not in destino:
+        return destino
+    return por_defecto
 
 
 def _leer_formulario(formulario, catalogo: list[dict], lista_clientes: list[dict]):
@@ -62,6 +83,32 @@ def _leer_formulario(formulario, catalogo: list[dict], lista_clientes: list[dict
     return datos, valores, None
 
 
+@bp.route("/")
+@login_requerido
+@negocio_requerido
+def lista():
+    filtro = request.args.get("estado", "activas")
+    if filtro not in FILTROS:
+        filtro = "activas"
+    busqueda = request.args.get("q", "").strip()[:60]
+    cid = g.comercio["id"]
+
+    # Buscar clientes por nombre o teléfono para incluir sus órdenes
+    cliente_ids = [c["id"] for c in clientes.listar(g.sb, cid, busqueda, limite=50)] if busqueda else None
+
+    estados = FILTROS[filtro][1]
+    orden_por = "actualizado_en" if filtro == "entregado" else "creado_en"
+    resultado = ordenes.listar(g.sb, cid, estados, busqueda, cliente_ids, orden_por=orden_por,
+                               limite=50 if filtro == "entregado" else 200)
+    resultado = presentacion.preparar(resultado, g.comercio["nombre"])
+    if filtro == "atencion":
+        resultado = sorted([o for o in resultado if o["alerta"] in ("atrasada", "hoy")],
+                           key=lambda o: o["fecha_entrega"])  # la más atrasada primero
+
+    return render_template("ordenes/lista.html", ordenes=resultado, filtro=filtro,
+                           filtros=FILTROS, busqueda=busqueda)
+
+
 @bp.route("/nueva", methods=["GET", "POST"])
 @login_requerido
 @negocio_requerido
@@ -97,11 +144,12 @@ def detalle(orden_id: int):
     orden = ordenes.obtener_detalle(g.sb, g.comercio["id"], orden_id)
     if orden is None:
         abort(404)
+    alerta = presentacion.calcular_alerta(orden, hoy_mexico())
     enlace_wa = None
     if orden["estado"] == "listo":
         enlace_wa = avisos.enlace_orden_lista(orden, g.comercio["nombre"])
     return render_template(
-        "ordenes/detalle.html", orden=orden, enlace_wa=enlace_wa,
+        "ordenes/detalle.html", orden=orden, enlace_wa=enlace_wa, alerta=alerta,
         siguiente=ordenes.siguiente_estado(orden["estado"]),
         anterior=ordenes.estado_anterior(orden["estado"]),
     )
@@ -121,12 +169,10 @@ def cambiar_estado(orden_id: int):
         flash(f"{orden['folio']} está lista. Ahora avisa al cliente por WhatsApp.", "exito")
     else:
         flash(f"{orden['folio']} cambió a «{ESTADOS[nuevo]}».", "exito")
-    return redirect(url_for("ordenes.detalle", orden_id=orden_id))
+    destino = _ruta_segura(request.form.get("volver"), url_for("ordenes.detalle", orden_id=orden_id))
+    return redirect(destino)
 
 
 @bp.route("/entregadas")
-@login_requerido
-@negocio_requerido
 def entregadas():
-    lista = ordenes.listar_entregadas(g.sb, g.comercio["id"])
-    return render_template("ordenes/entregadas.html", ordenes=lista)
+    return redirect(url_for("ordenes.lista", estado="entregado"))

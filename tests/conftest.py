@@ -44,3 +44,11 @@ def iniciar_sesion(cliente, expira_en: int = 3600) -> None:
         s["usuario_id"] = s_falsa.user.id
         s["email"] = s_falsa.user.email
         s["csrf_token"] = "csrf-pruebas"
+
+
+@pytest.fixture(autouse=True)
+def sin_entregadas_por_defecto(monkeypatch):
+    """El panel también consulta las entregas de la semana; por defecto no hay
+    ninguna (cada prueba puede reemplazarlo). Así ninguna prueba sale a internet."""
+    monkeypatch.setattr("puntolisto.modelos.ordenes.listar_entregadas",
+                        lambda sb, cid, limite=50: [])

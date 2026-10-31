@@ -1,12 +1,16 @@
 {% extends "base.html" %}
 {% block titulo %}Configura tu negocio{% endblock %}
 
+{% block encabezado %}{% endblock %}
+
 {% block contenido %}
+<div class="acceso-hero">
+  <img src="{{ url_for('recursos.archivo', archivo='icono-192.png') }}" alt="" width="64" height="64">
+  <h1>Configura tu negocio</h1>
+  <p>Solo una vez. Con el giro cargamos servicios de ejemplo que luego puedes editar.</p>
+</div>
+
 <article>
-  <header>
-    <h1>Configura tu negocio</h1>
-    <p>Solo una vez. Con el giro cargamos servicios de ejemplo que luego puedes editar.</p>
-  </header>
 
   <form method="post" novalidate>
     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">

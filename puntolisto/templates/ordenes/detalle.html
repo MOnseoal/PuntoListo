@@ -1,17 +1,50 @@
 {% extends "base.html" %}
 {% block titulo %}Orden {{ orden.folio }}{% endblock %}
 
+{% set PASOS = [("recibido", "Recibida"), ("en_proceso", "En proceso"), ("listo", "Lista"), ("entregado", "Entregada")] %}
+{% set indice = ["recibido", "en_proceso", "listo", "entregado"].index(orden.estado) %}
+
 {% block contenido %}
-<hgroup>
-  <h1>{{ orden.folio }}</h1>
-  <p><span class="estado estado-{{ orden.estado }}">{{ ESTADOS[orden.estado] }}</span></p>
-</hgroup>
+{# ---------- Cabecera con seguimiento por pasos (estilo app médica) ---------- #}
+<section class="cabecera-orden">
+  <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:.5rem">
+    <div>
+      <p class="tenue" style="margin:0;font-size:.85rem">Orden</p>
+      <p class="folio">{{ orden.folio }}</p>
+    </div>
+    <div style="text-align:right">
+      <span class="etiqueta estado-{{ orden.estado }}">{{ ESTADOS[orden.estado] }}</span>
+      {% if alerta %}<br><span class="etiqueta alerta-{{ alerta }}" style="margin-top:.3rem">{{ {"atrasada": "Atrasada", "hoy": "Vence hoy", "manana": "Vence mañana"}[alerta] }}</span>{% endif %}
+    </div>
+  </div>
+
+  <div class="pasos" role="list" aria-label="Avance de la orden">
+    <span class="progreso" style="width: {{ 25 * indice }}%"></span>
+    {% for clave, texto in PASOS %}
+    <div class="paso {{ 'hecho' if loop.index0 < indice or (loop.index0 == indice and orden.estado == 'entregado') }} {{ 'actual' if loop.index0 == indice }}" role="listitem">
+      <span class="punto">{% if loop.index0 < indice or (loop.index0 == indice and orden.estado == 'entregado') %}<svg aria-hidden="true"><use href="#i-check"/></svg>{% endif %}</span>
+      {{ texto }}
+    </div>
+    {% endfor %}
+  </div>
+
+  {% if orden.clientes %}
+  <div class="cliente">
+    <span class="avatar" aria-hidden="true">{{ orden.clientes.nombre|iniciales }}</span>
+    <div>
+      <strong>{{ orden.clientes.nombre }}</strong><br>
+      <small class="tenue">{{ orden.clientes.telefono|telefono_legible }}</small>
+    </div>
+  </div>
+  {% endif %}
+</section>
 
 {# ---------- Aviso por WhatsApp (función h): aparece cuando la orden está Lista ---------- #}
 {% if orden.estado == "listo" %}
   {% if enlace_wa %}
-  <a href="{{ enlace_wa }}" target="_blank" rel="noopener" role="button" class="boton-ancho whatsapp">
-    Avisar por WhatsApp
+  <a href="{{ enlace_wa }}" target="_blank" rel="noopener" role="button" class="boton-ancho whatsapp"
+     style="display:flex;justify-content:center;align-items:center;gap:.5rem">
+    <svg class="icono" aria-hidden="true"><use href="#i-whatsapp"/></svg>Avisar por WhatsApp
   </a>
   {% else %}
   <p class="mensaje info">El cliente no tiene teléfono registrado para avisarle.</p>
@@ -23,39 +56,30 @@
 <form method="post" action="{{ url_for('ordenes.cambiar_estado', orden_id=orden.id) }}">
   <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
   <input type="hidden" name="estado" value="{{ siguiente }}">
-  <button type="submit" class="{{ 'secondary' if orden.estado == 'listo' else '' }}">
+  <button type="submit" class="{{ 'secondary outline' if orden.estado == 'listo' else '' }}">
     Marcar como «{{ ESTADOS[siguiente] }}»
   </button>
 </form>
 {% endif %}
 
-<article>
-  <header><strong>Cliente</strong></header>
-  {% if orden.clientes %}
-  <p>{{ orden.clientes.nombre }}<br>
-    <small>{{ orden.clientes.telefono|telefono_legible }}</small></p>
-  {% endif %}
-</article>
-
-<article>
-  <header><strong>Servicios</strong></header>
+<h2 class="seccion">Servicios</h2>
+<div class="menu-lista">
   {% for linea in orden.orden_servicios %}
   <div class="fila">
     <span>{{ linea.servicios.nombre if linea.servicios else "Servicio" }}</span>
-    <small>{{ cantidad_legible(linea.cantidad, linea.servicios.tipo_cobro if linea.servicios else "") }}
+    <small class="tenue">{{ cantidad_legible(linea.cantidad, linea.servicios.tipo_cobro if linea.servicios else "") }}
       × {{ linea.precio_unitario|dinero }}</small>
   </div>
   {% endfor %}
-</article>
+</div>
 
-<article>
-  <header><strong>Datos de la orden</strong></header>
-  <p>
-    Recibida: {{ orden.creado_en|fecha_corta }}<br>
-    Entrega prometida: {{ orden.fecha_entrega|fecha_corta if orden.fecha_entrega else "Sin fecha" }}
-    {% if orden.notas %}<br>Notas: {{ orden.notas }}{% endif %}
-  </p>
-</article>
+<h2 class="seccion">Datos de la orden</h2>
+<div class="menu-lista">
+  <div class="fila"><span class="tenue">Recibida</span><span>{{ orden.creado_en|fecha_corta }}</span></div>
+  <div class="fila"><span class="tenue">Entrega prometida</span>
+    <span>{{ (orden.fecha_entrega|fecha_corta ~ " (" ~ orden.fecha_entrega|fecha_amigable ~ ")") if orden.fecha_entrega else "Sin fecha" }}</span></div>
+  {% if orden.notas %}<div class="fila"><span class="tenue">Notas</span><span style="text-align:right">{{ orden.notas }}</span></div>{% endif %}
+</div>
 
 {% if anterior %}
 <form method="post" action="{{ url_for('ordenes.cambiar_estado', orden_id=orden.id) }}">
@@ -67,5 +91,5 @@
 </form>
 {% endif %}
 
-<p style="margin-top:1rem"><a href="{{ url_for('panel.inicio') }}">← Volver al panel</a></p>
+<p style="margin-top:1rem"><a href="{{ url_for('ordenes.lista') }}">← Ver órdenes</a></p>
 {% endblock %}

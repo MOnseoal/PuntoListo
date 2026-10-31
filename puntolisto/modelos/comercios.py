@@ -32,3 +32,15 @@ def crear(sb, usuario_id: str, nombre: str, abreviatura: str, giro: str,
     }).execute()
     cargados = sb.rpc("cargar_servicios_ejemplo", {}).execute()
     return cargados.data or 0
+
+
+def actualizar(sb, usuario_id: str, nombre: str, telefono: str | None) -> dict | None:
+    """Solo nombre y teléfono. La abreviatura y el giro no se cambian para que
+    los folios y el catálogo sigan siendo coherentes."""
+    respuesta = (
+        sb.table("comercios")
+        .update({"nombre": nombre, "telefono": telefono})
+        .eq("usuario_id", usuario_id)
+        .execute()
+    )
+    return respuesta.data[0] if respuesta.data else None

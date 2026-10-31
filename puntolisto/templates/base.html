@@ -1,67 +1,39 @@
 <!doctype html>
-<html lang="es" data-theme="light">
+{# El tema es automático; si el usuario eligió uno en Ajustes, este script lo aplica antes de pintar (sin parpadeo) #}
+<html lang="es">
 <head>
   <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <script>try{var t=localStorage.getItem("pl-tema");if(t==="light"||t==="dark")document.documentElement.setAttribute("data-theme",t)}catch(e){}</script>
+  <meta name="color-scheme" content="light dark">
+  <meta name="theme-color" content="#f3f5f7" media="(prefers-color-scheme: light)">
+  <meta name="theme-color" content="#0b1114" media="(prefers-color-scheme: dark)">
   <title>{% block titulo %}PuntoListo{% endblock %} · PuntoListo</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.min.css">
-  <style>
-    /* Estilos propios mínimos (Pico hace casi todo) */
-    .marca { font-weight: 700; text-decoration: none; }
-    .mensaje { padding: .75rem 1rem; border-radius: var(--pico-border-radius); margin-bottom: 1rem; }
-    .mensaje.error { background: #fde8e8; color: #9b1c1c; }
-    .mensaje.exito { background: #def7ec; color: #03543f; }
-    .mensaje.info  { background: #e1effe; color: #1e429f; }
-    .ayuda { font-size: .85rem; color: var(--pico-muted-color); margin-top: -.5rem; }
-    .contador { font-size: 2rem; font-weight: 700; margin: 0; }
-    .resumen { display: grid; grid-template-columns: repeat(3, 1fr); gap: .5rem; text-align: center; }
-    .resumen article { margin: 0; padding: .75rem .25rem; }
-    .orden { display: flex; justify-content: space-between; gap: .5rem; padding: .5rem 0;
-             border-bottom: 1px solid var(--pico-muted-border-color); }
-    .orden:last-child { border-bottom: 0; }
-    .boton-ancho { display: block; width: 100%; margin-bottom: 1rem; }
-    .fila { display: flex; justify-content: space-between; align-items: center; gap: .5rem;
-            padding: .75rem 0; border-bottom: 1px solid var(--pico-muted-border-color);
-            color: inherit; text-decoration: none; }
-    .fila:last-child { border-bottom: 0; }
-    .fila form { margin: 0; }
-    .enlace-fila { color: inherit; text-decoration: none; flex: 1; }
-    .inactivo { opacity: .55; }
-    .boton-chico { padding: .3rem .6rem; font-size: .85rem; margin: 0; width: auto; }
-    .enlaces { display: flex; gap: .5rem; margin-bottom: 1rem; }
-    .enlaces a { flex: 1; margin: 0; }
-    .estado { display: inline-block; padding: .15rem .6rem; border-radius: 1rem; font-size: .85rem;
-              font-weight: 600; }
-    .estado-recibido   { background: #e1effe; color: #1e429f; }
-    .estado-en_proceso { background: #fdf6b2; color: #723b13; }
-    .estado-listo      { background: #def7ec; color: #03543f; }
-    .estado-entregado  { background: #f3f4f6; color: #374151; }
-    .whatsapp { background: #25d366; border-color: #25d366; color: #fff; }
-    .servicio-orden { display: grid; grid-template-columns: 1fr 6.5rem; gap: .5rem;
-                      align-items: center; padding: .5rem 0;
-                      border-bottom: 1px solid var(--pico-muted-border-color); }
-    .servicio-orden input { margin: 0; }
-    nav form { margin: 0; }
-    nav button { padding: .35rem .75rem; margin: 0; }
-  </style>
+  <link rel="stylesheet" href="{{ url_for('recursos.archivo', archivo='app.css', v=VERSION_RECURSOS) }}">
+
+  {# Para instalar como app en el teléfono #}
+  <link rel="manifest" href="{{ url_for('recursos.manifest') }}">
+  <link rel="icon" type="image/png" href="{{ url_for('recursos.archivo', archivo='favicon.png') }}">
+  <link rel="apple-touch-icon" href="{{ url_for('recursos.archivo', archivo='icono-apple-180.png') }}">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-title" content="PuntoListo">
 </head>
 <body>
-  <header class="container">
-    <nav>
-      <ul><li><a class="marca" href="{{ url_for('panel.inicio') }}">PuntoListo</a></li></ul>
-      {% if session.get('access_token') %}
-      <ul>
-        <li><a href="{{ url_for('clientes.lista') }}">Clientes</a></li>
-        <li>
-          <form method="post" action="{{ url_for('auth.salir') }}">
-            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-            <button type="submit" class="secondary outline">Salir</button>
-          </form>
-        </li>
-      </ul>
-      {% endif %}
-    </nav>
+  {% include "_iconos.html" %}
+
+  {% block encabezado %}
+  <header class="container barra">
+    <a class="marca" href="{{ url_for('panel.inicio') }}">
+      <img src="{{ url_for('recursos.archivo', archivo='icono-192.png') }}" alt="" width="26" height="26">
+      PuntoListo
+    </a>
   </header>
+  {% endblock %}
 
   <main class="container">
     {% with mensajes = get_flashed_messages(with_categories=true) %}
@@ -72,5 +44,29 @@
 
     {% block contenido %}{% endblock %}
   </main>
+
+  {# Barra inferior flotante: solo cuando el comerciante ya configuró su negocio #}
+  {% if g.get('comercio') %}
+  {% set seccion = request.blueprint %}
+  <nav class="inferior" aria-label="Navegación principal">
+    <a href="{{ url_for('panel.inicio') }}" {% if seccion == 'panel' %}aria-current="page"{% endif %}>
+      <svg class="icono" aria-hidden="true"><use href="#i-panel"/></svg>Inicio
+    </a>
+    <a href="{{ url_for('ordenes.lista') }}" {% if seccion == 'ordenes' and request.endpoint != 'ordenes.nueva' %}aria-current="page"{% endif %}>
+      <svg class="icono" aria-hidden="true"><use href="#i-ordenes"/></svg>Órdenes
+    </a>
+    <a href="{{ url_for('ordenes.nueva') }}" class="central" aria-label="Nueva orden">
+      <span><svg class="icono" aria-hidden="true"><use href="#i-mas"/></svg></span>
+    </a>
+    <a href="{{ url_for('clientes.lista') }}" {% if seccion == 'clientes' %}aria-current="page"{% endif %}>
+      <svg class="icono" aria-hidden="true"><use href="#i-clientes"/></svg>Clientes
+    </a>
+    <a href="{{ url_for('negocio.ajustes') }}" {% if seccion == 'negocio' %}aria-current="page"{% endif %}>
+      <svg class="icono" aria-hidden="true"><use href="#i-ajustes"/></svg>Ajustes
+    </a>
+  </nav>
+  {% endif %}
+
+  <script src="{{ url_for('recursos.archivo', archivo='app.js', v=VERSION_RECURSOS) }}" defer></script>
 </body>
 </html>

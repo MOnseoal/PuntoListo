@@ -10,7 +10,7 @@
 <a href="{{ url_for('negocio.servicio_nuevo') }}" role="button" class="boton-ancho">+ Nuevo servicio</a>
 
 {% if servicios %}
-<article>
+<div class="menu-lista">
   {% for s in servicios %}
   <div class="fila {% if not s.activo %}inactivo{% endif %}">
     <a href="{{ url_for('negocio.servicio_editar', servicio_id=s.id) }}" class="enlace-fila">
@@ -24,10 +24,10 @@
     </form>
   </div>
   {% endfor %}
-</article>
+</div>
 {% else %}
 <article><p>Aún no tienes servicios. Agrega el primero.</p></article>
 {% endif %}
 
-<a href="{{ url_for('panel.inicio') }}">← Volver al panel</a>
+<a href="{{ url_for('negocio.ajustes') }}">← Volver a ajustes</a>
 {% endblock %}

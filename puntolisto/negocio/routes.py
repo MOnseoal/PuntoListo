@@ -2,12 +2,13 @@
 
 ACT-12: pantalla "Configura tu negocio" (nombre, abreviatura, giro).
 ACT-14: catálogo de servicios (agregar, editar, activar/desactivar).
+Ajustes: editar nombre y teléfono del negocio, accesos y cerrar sesión.
 """
-from flask import Blueprint, abort, flash, g, redirect, render_template, request, url_for
+from flask import Blueprint, abort, flash, g, redirect, render_template, request, session, url_for
 from postgrest.exceptions import APIError
 
 from .. import validaciones as v
-from ..etiquetas import GIROS, TIPOS_COBRO
+from ..etiquetas import GIROS, TIPOS_COBRO, telefono_legible
 from ..modelos import comercios, servicios
 from ..seguridad import login_requerido, negocio_requerido
 
@@ -151,3 +152,37 @@ def servicio_activo(servicio_id: int):
     else:
         flash(f"{servicio['nombre']} ya no aparecerá en las órdenes nuevas.", "info")
     return redirect(url_for("negocio.catalogo"))
+
+
+# ======================================================================
+# Ajustes: datos del negocio, catálogo, instalar la app y sesión
+# ======================================================================
+@bp.route("/ajustes", methods=["GET", "POST"])
+@login_requerido
+@negocio_requerido
+def ajustes():
+    datos = {"nombre": g.comercio["nombre"],
+             "telefono": telefono_legible(g.comercio.get("telefono") or "")}
+
+    if request.method == "POST":
+        nombre = " ".join(request.form.get("nombre", "").split())
+        telefono_texto = request.form.get("telefono", "").strip()
+        telefono = v.normalizar_telefono(telefono_texto) if telefono_texto else None
+        datos = {"nombre": nombre, "telefono": telefono_texto}
+
+        if not v.nombre_valido(nombre):
+            flash("El nombre del negocio debe tener entre 2 y 80 caracteres.", "error")
+        elif telefono_texto and telefono is None:
+            flash("El teléfono debe tener 10 dígitos.", "error")
+        else:
+            try:
+                comercios.actualizar(g.sb, g.usuario_id, nombre, telefono)
+            except APIError:
+                flash("No se pudo guardar. Intenta de nuevo.", "error")
+            else:
+                flash("Datos del negocio guardados.", "exito")
+                return redirect(url_for("negocio.ajustes"))
+
+    return render_template("negocio/ajustes.html", datos=datos, comercio=g.comercio,
+                           correo=session.get("email", ""),
+                           total_servicios=len(servicios.listar(g.sb, g.comercio["id"], solo_activos=True)))

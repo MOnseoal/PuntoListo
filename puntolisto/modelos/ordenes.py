@@ -4,6 +4,8 @@ La creación SIEMPRE pasa por la función RPC crear_orden() de la base de
 datos: guarda orden + servicios en una sola transacción y el trigger
 asigna el folio (ABREV-0001). Python nunca calcula el folio.
 """
+import re
+
 ESTADOS_ACTIVOS = ("recibido", "en_proceso", "listo")
 ORDEN_ESTADOS = ("recibido", "en_proceso", "listo", "entregado")
 
@@ -14,32 +16,56 @@ COLUMNAS_DETALLE = (
 )
 
 
-def listar_activas(sb, comercio_id: int, limite: int = 100) -> list[dict]:
-    """Órdenes que aún no se entregan, de la más reciente a la más antigua."""
-    respuesta = (
-        sb.table("ordenes")
-        .select("id, folio, estado, fecha_entrega, creado_en, clientes(nombre)")
+# Columnas para las tarjetas: cliente con teléfono (para el botón de WhatsApp)
+# y un resumen de servicios.
+COLUMNAS_TARJETA = (
+    "id, folio, estado, fecha_entrega, creado_en, actualizado_en, "
+    "clientes(nombre, telefono), orden_servicios(cantidad, servicios(nombre, tipo_cobro))"
+)
+
+
+def _limpiar_folio(texto: str) -> str:
+    """Solo letras, números y guion: lo que puede tener un folio."""
+    return re.sub(r"[^A-Za-z0-9-]", "", texto or "").upper()
+
+
+def listar(sb, comercio_id: int, estados: tuple[str, ...], busqueda: str = "",
+           cliente_ids: list[int] | None = None, orden_por: str = "creado_en",
+           limite: int = 200) -> list[dict]:
+    """Órdenes en los estados indicados, de la más reciente a la más antigua.
+
+    busqueda + cliente_ids: encuentra órdenes cuyo folio contenga el texto
+    O cuyo cliente esté en cliente_ids (los ids salen de buscar clientes por
+    nombre o teléfono en el repositorio de clientes).
+    """
+    consulta = (
+        sb.table("ordenes").select(COLUMNAS_TARJETA)
         .eq("comercio_id", comercio_id)
-        .in_("estado", list(ESTADOS_ACTIVOS))
-        .order("creado_en", desc=True)
-        .limit(limite)
-        .execute()
+        .in_("estado", list(estados))
     )
+    folio = _limpiar_folio(busqueda)
+    condiciones = []
+    if folio:
+        condiciones.append(f"folio.ilike.*{folio}*")
+    if cliente_ids:
+        condiciones.append(f"cliente_id.in.({','.join(str(int(i)) for i in cliente_ids)})")
+    if busqueda.strip():
+        if not condiciones:
+            return []  # se buscó algo que no puede coincidir con nada
+        consulta = consulta.or_(",".join(condiciones))
+
+    respuesta = consulta.order(orden_por, desc=True).limit(limite).execute()
     return respuesta.data or []
+
+
+def listar_activas(sb, comercio_id: int, limite: int = 200) -> list[dict]:
+    """Órdenes que aún no se entregan (para el panel)."""
+    return listar(sb, comercio_id, ESTADOS_ACTIVOS, limite=limite)
 
 
 def listar_entregadas(sb, comercio_id: int, limite: int = 50) -> list[dict]:
     """Últimas órdenes entregadas (las más recientes primero)."""
-    respuesta = (
-        sb.table("ordenes")
-        .select("id, folio, estado, fecha_entrega, actualizado_en, clientes(nombre)")
-        .eq("comercio_id", comercio_id)
-        .eq("estado", "entregado")
-        .order("actualizado_en", desc=True)
-        .limit(limite)
-        .execute()
-    )
-    return respuesta.data or []
+    return listar(sb, comercio_id, ("entregado",), orden_por="actualizado_en", limite=limite)
 
 
 def agrupar_por_estado(ordenes: list[dict]) -> dict[str, list[dict]]:

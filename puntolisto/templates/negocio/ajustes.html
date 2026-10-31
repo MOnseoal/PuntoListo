@@ -1,0 +1,67 @@
+{% extends "base.html" %}
+{% block titulo %}Ajustes{% endblock %}
+
+{% block contenido %}
+<div class="saludo">
+  <span class="avatar" aria-hidden="true">{{ comercio.nombre|iniciales }}</span>
+  <div><h1>Ajustes</h1><p>{{ correo }}</p></div>
+</div>
+
+<h2 class="seccion">Apariencia</h2>
+<div class="menu-lista" style="padding:.9rem 1rem">
+  <p style="margin:0 0 .6rem;font-weight:600">Tema</p>
+  <div class="segmentado" role="group" aria-label="Tema de la app">
+    <button type="button" data-tema-opcion="auto" aria-pressed="true">
+      <svg class="icono" style="width:1rem;height:1rem;vertical-align:-2px" aria-hidden="true"><use href="#i-auto"/></svg> Auto</button>
+    <button type="button" data-tema-opcion="light" aria-pressed="false">
+      <svg class="icono" style="width:1rem;height:1rem;vertical-align:-2px" aria-hidden="true"><use href="#i-sol"/></svg> Claro</button>
+    <button type="button" data-tema-opcion="dark" aria-pressed="false">
+      <svg class="icono" style="width:1rem;height:1rem;vertical-align:-2px" aria-hidden="true"><use href="#i-luna"/></svg> Oscuro</button>
+  </div>
+  <p class="ayuda" style="margin:.6rem 0 0">Automático sigue la configuración de tu teléfono. Se guarda en este dispositivo.</p>
+</div>
+
+<h2 class="seccion">Mi negocio</h2>
+<article style="margin-top:0">
+  <form method="post" novalidate>
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    <label for="nombre">Nombre del negocio</label>
+    <input type="text" id="nombre" name="nombre" value="{{ datos.nombre }}" maxlength="80" required>
+    <p class="ayuda">Aparece en los mensajes de WhatsApp que envías.</p>
+
+    <label for="telefono">Teléfono del negocio (opcional)</label>
+    <input type="tel" id="telefono" name="telefono" value="{{ datos.telefono }}" inputmode="numeric"
+           placeholder="993 123 4567">
+
+    <div class="fila"><span class="tenue">Giro</span><span>{{ GIROS[comercio.giro] }}</span></div>
+    <div class="fila"><span class="tenue">Folios</span><span>{{ comercio.abreviatura }}-0001, {{ comercio.abreviatura }}-0002…</span></div>
+    <p class="ayuda" style="margin-top:.5rem">El giro y la abreviatura no se cambian para mantener tus folios en orden.</p>
+
+    <button type="submit" class="outline">Guardar cambios</button>
+  </form>
+</article>
+
+<h2 class="seccion">Servicios</h2>
+<div class="menu-lista">
+  <a class="fila" href="{{ url_for('negocio.catalogo') }}">
+    <span class="avatar" aria-hidden="true"><svg class="icono" style="width:1.1rem;height:1.1rem"><use href="#i-catalogo"/></svg></span>
+    <span class="enlace-fila"><strong>Catálogo de servicios</strong><br>
+      <small class="tenue">{{ total_servicios }} {{ "servicio activo" if total_servicios == 1 else "servicios activos" }}</small></span>
+    <span class="tenue" aria-hidden="true">›</span>
+  </a>
+</div>
+
+<h2 class="seccion">App</h2>
+<article>
+  <strong>Instalar en tu teléfono</strong>
+  <p class="tenue" style="margin:.25rem 0 0">
+    En Chrome toca <b>⋮</b> → <b>Agregar a la pantalla principal</b> (o <b>Instalar app</b>).
+    PuntoListo se abrirá como una app, sin la barra del navegador.
+  </p>
+</article>
+
+<form method="post" action="{{ url_for('auth.salir') }}">
+  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+  <button type="submit" class="secondary outline boton-ancho">Cerrar sesión</button>
+</form>
+{% endblock %}

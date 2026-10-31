@@ -16,14 +16,16 @@
 </form>
 
 {% if clientes %}
-<article>
+<div class="menu-lista">
   {% for cliente in clientes %}
   <a class="fila" href="{{ url_for('clientes.editar', cliente_id=cliente.id) }}">
-    <strong>{{ cliente.nombre }}</strong>
-    <small>{{ cliente.telefono|telefono_legible }}</small>
+    <span class="avatar" aria-hidden="true">{{ cliente.nombre|iniciales }}</span>
+    <span class="enlace-fila"><strong>{{ cliente.nombre }}</strong><br>
+      <small class="tenue">{{ cliente.telefono|telefono_legible }}</small></span>
+    <span class="tenue" aria-hidden="true">›</span>
   </a>
   {% endfor %}
-</article>
+</div>
 {% elif busqueda %}
 <article>
   <p>No hay clientes que coincidan con "{{ busqueda }}".</p>

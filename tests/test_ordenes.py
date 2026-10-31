@@ -1,4 +1,6 @@
 """Pruebas de órdenes, estados y aviso (ACT-15, 17 y 18) simulando Supabase."""
+import re
+
 import pytest
 from postgrest.exceptions import APIError
 
@@ -39,7 +41,7 @@ def con_negocio(cliente, monkeypatch):
 def test_formulario_muestra_clientes_y_servicios(con_negocio):
     texto = con_negocio.get("/ordenes/nueva?cliente_id=7").get_data(as_text=True)
     assert "María López" in texto and "Lavado por kilo" in texto and "Planchado" in texto
-    assert '<option value="7" selected' in texto  # viene de "+ Cliente nuevo"
+    assert re.search(r'value="7"\s+checked', texto)  # viene de "+ Cliente nuevo"
 
 
 def test_crear_orden(con_negocio, monkeypatch):
@@ -77,7 +79,7 @@ def test_orden_invalida_conserva_lo_escrito(con_negocio):
     texto = con_negocio.post("/ordenes/nueva", data={
         "csrf_token": "csrf-pruebas", "cliente_id": "7", "cantidad_3": "4", "cantidad_5": "1.5",
         "notas": "Urgente"}).get_data(as_text=True)
-    assert 'value="4"' in texto and "Urgente" in texto and '<option value="7" selected' in texto
+    assert 'value="4"' in texto and "Urgente" in texto and re.search(r'value="7"\s+checked', texto)
 
 
 def test_error_de_la_base_al_crear(con_negocio, monkeypatch):
@@ -153,12 +155,9 @@ def test_estado_de_orden_ajena_da_404(con_negocio, monkeypatch):
                             data={"csrf_token": "csrf-pruebas", "estado": "listo"}).status_code == 404
 
 
-def test_entregadas(con_negocio, monkeypatch):
-    monkeypatch.setattr("puntolisto.modelos.ordenes.listar_entregadas", lambda sb, cid: [
-        {"id": 1, "folio": "LAV-0001", "actualizado_en": "2026-11-01T17:00:00+00:00",
-         "clientes": {"nombre": "María López"}}])
-    texto = con_negocio.get("/ordenes/entregadas").get_data(as_text=True)
-    assert "LAV-0001" in texto and "01/11/2026" in texto
+def test_entregadas_redirige_al_filtro(con_negocio):
+    respuesta = con_negocio.get("/ordenes/entregadas")
+    assert respuesta.headers["Location"].endswith("/ordenes/?estado=entregado")
 
 
 def test_secuencia_de_estados():

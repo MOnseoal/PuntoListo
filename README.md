@@ -26,7 +26,8 @@ python -m pytest
 
 ## Base de datos
 
-Ejecutar `docs/sql/001_esquema.sql` una vez en Supabase → SQL Editor.
+Ejecutar en orden, una vez cada uno, en Supabase → SQL Editor:
+`docs/sql/001_esquema.sql` y `docs/sql/002_permitir_borrar_cuenta.sql`.
 Explicación completa en `docs/ACT-11_base_de_datos.md`.
 
 ## Despliegue

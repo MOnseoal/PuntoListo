@@ -1,0 +1,46 @@
+{# Componentes reutilizables. Uso: {% from "_tarjetas.html" import tarjeta_orden %} #}
+
+{% set TEXTO_ALERTA = {"atrasada": "Atrasada", "hoy": "Vence hoy", "manana": "Mañana"} %}
+{% set ACCION = {"en_proceso": "Empezar", "listo": "Lista", "entregado": "Entregar"} %}
+
+{# Tarjeta tipo "cita": bloque de fecha a la izquierda, datos al centro y acción rápida a la derecha #}
+{% macro tarjeta_orden(orden, volver) %}
+{% set fecha = orden.actualizado_en if orden.estado == "entregado" else orden.fecha_entrega %}
+{% set dia, mes = dia_y_mes(fecha) if fecha else ("", "") %}
+<div class="tarjeta">
+  <a class="fecha {{ 'alerta-' ~ orden.alerta if orden.alerta else ('estado-listo' if orden.estado == 'listo' else ('' if fecha else 'sin-fecha')) }}"
+     href="{{ url_for('ordenes.detalle', orden_id=orden.id) }}" tabindex="-1" aria-hidden="true">
+    {% if fecha %}<b>{{ dia }}</b><small>{{ mes }}</small>{% else %}<b>—</b><small>sin fecha</small>{% endif %}
+  </a>
+
+  <a class="info" href="{{ url_for('ordenes.detalle', orden_id=orden.id) }}">
+    <span class="titulo">
+      {{ orden.folio }}
+      {% if orden.alerta %}<span class="etiqueta alerta-{{ orden.alerta }}">{{ TEXTO_ALERTA[orden.alerta] }}</span>
+      {% else %}<span class="etiqueta estado-{{ orden.estado }}">{{ ESTADOS[orden.estado] }}</span>{% endif %}
+    </span>
+    <span class="detalle">{{ orden.clientes.nombre if orden.clientes else "" }}</span>
+    {% if orden.resumen %}<span class="detalle">{{ orden.resumen }}</span>{% endif %}
+  </a>
+
+  {# Acción rápida: Avisar si está lista; si no, avanzar al siguiente estado #}
+  {% if orden.enlace_wa or orden.siguiente %}
+  <div class="acciones">
+  {% if orden.enlace_wa %}
+    <a class="accion wa" role="button" href="{{ orden.enlace_wa }}" target="_blank" rel="noopener"
+       aria-label="Avisar a {{ orden.clientes.nombre }} por WhatsApp">
+      <svg aria-hidden="true"><use href="#i-whatsapp"/></svg>Avisar</a>
+  {% endif %}
+  {% if orden.siguiente %}
+  <form method="post" action="{{ url_for('ordenes.cambiar_estado', orden_id=orden.id) }}">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    <input type="hidden" name="estado" value="{{ orden.siguiente }}">
+    <input type="hidden" name="volver" value="{{ volver }}">
+    <button type="submit" class="accion {{ 'secondary outline' if orden.enlace_wa else 'outline' }}"
+            aria-label="Marcar {{ orden.folio }} como {{ ESTADOS[orden.siguiente] }}">{{ ACCION[orden.siguiente] }} →</button>
+  </form>
+  {% endif %}
+  </div>
+  {% endif %}
+</div>
+{% endmacro %}

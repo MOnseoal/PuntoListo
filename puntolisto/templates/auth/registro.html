@@ -1,12 +1,16 @@
 {% extends "base.html" %}
 {% block titulo %}Crear cuenta{% endblock %}
 
+{% block encabezado %}{% endblock %}
+
 {% block contenido %}
+<div class="acceso-hero">
+  <img src="{{ url_for('recursos.archivo', archivo='icono-192.png') }}" alt="" width="64" height="64">
+  <h1>Crear cuenta</h1>
+  <p>Gratis. Después configuras tu negocio.</p>
+</div>
+
 <article>
-  <header>
-    <h1>Crear cuenta</h1>
-    <p>Gratis. Después configuras tu negocio.</p>
-  </header>
 
   <form method="post" novalidate>
     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">

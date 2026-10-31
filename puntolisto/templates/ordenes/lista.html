@@ -1,0 +1,46 @@
+{% extends "base.html" %}
+{% from "_tarjetas.html" import tarjeta_orden %}
+{% block titulo %}Órdenes{% endblock %}
+
+{% block contenido %}
+<h1>Órdenes</h1>
+
+<form method="get" role="search">
+  <input type="search" name="q" value="{{ busqueda }}" placeholder="Folio o cliente"
+         aria-label="Buscar orden" autocomplete="off">
+  <input type="hidden" name="estado" value="{{ filtro }}">
+  <button type="submit">Buscar</button>
+</form>
+
+<nav class="chips" aria-label="Filtrar órdenes">
+  {% for clave, (texto, _estados) in filtros.items() %}
+  <a href="{{ url_for('ordenes.lista', estado=clave, q=busqueda or None) }}"
+     {% if clave == filtro %}aria-current="true"{% endif %}>{{ texto }}</a>
+  {% endfor %}
+</nav>
+
+{% if ordenes %}
+<p class="tenue" style="font-size:.85rem;margin:.25rem 0 .5rem">
+  {{ ordenes|length }} {{ "orden" if ordenes|length == 1 else "órdenes" }}
+  {% if filtro == "entregado" %}(las 50 más recientes){% endif %}
+</p>
+<div class="lista">
+  {% for orden in ordenes %}{{ tarjeta_orden(orden, request.full_path) }}{% endfor %}
+</div>
+{% elif busqueda %}
+<article>
+  <p style="margin:0">No hay órdenes que coincidan con «{{ busqueda }}» en «{{ filtros[filtro][0] }}».</p>
+  <a href="{{ url_for('ordenes.lista', estado='activas') }}">Ver todas las pendientes</a>
+</article>
+{% else %}
+<article>
+  <p style="margin:0">
+    {% if filtro == "atencion" %}Nada urgente: no hay órdenes atrasadas ni que venzan hoy.
+    {% elif filtro == "entregado" %}Aún no has entregado órdenes.
+    {% else %}No hay órdenes en «{{ filtros[filtro][0] }}».{% endif %}
+  </p>
+</article>
+{% endif %}
+
+<a href="{{ url_for('ordenes.nueva') }}" role="button" class="boton-ancho">+ Nueva orden</a>
+{% endblock %}

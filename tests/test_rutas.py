@@ -143,7 +143,8 @@ def test_panel_agrupa_por_estado(cliente, monkeypatch):
     ])
     texto = cliente.get("/").get_data(as_text=True)
     assert "Lavandería Ana" in texto
-    assert "LAV-0002" in texto and "María López" in texto and "05/11/2026" in texto
+    assert "LAV-0002" in texto and "María López" in texto
+    assert "<b>5</b><small>nov</small>" in texto  # bloque de fecha de entrega
     assert "LAV-0001" in texto
 
 

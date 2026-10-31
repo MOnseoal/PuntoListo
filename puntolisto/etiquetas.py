@@ -27,6 +27,77 @@ TIPOS_COBRO = {
 }
 
 
+DIAS = ("lun", "mar", "mié", "jue", "vie", "sáb", "dom")
+MESES = ("ene", "feb", "mar", "abr", "may", "jun", "jul", "ago", "sep", "oct", "nov", "dic")
+DIAS_LARGOS = ("Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado", "Domingo")
+
+
+def hoy_mexico() -> date:
+    """Fecha de hoy en México (el servidor de Vercel trabaja en UTC)."""
+    return datetime.now(HORA_MEXICO).date()
+
+
+def _a_fecha(valor) -> date | None:
+    if not valor:
+        return None
+    if isinstance(valor, datetime):
+        return valor.astimezone(HORA_MEXICO).date()
+    if isinstance(valor, date):
+        return valor
+    return date.fromisoformat(str(valor)[:10])
+
+
+def fecha_amigable(valor) -> str:
+    """'hoy', 'mañana', 'ayer' o 'lun 2 nov'."""
+    fecha = _a_fecha(valor)
+    if fecha is None:
+        return ""
+    diferencia = (fecha - hoy_mexico()).days
+    if diferencia == 0:
+        return "hoy"
+    if diferencia == 1:
+        return "mañana"
+    if diferencia == -1:
+        return "ayer"
+    return f"{DIAS[fecha.weekday()]} {fecha.day} {MESES[fecha.month - 1]}"
+
+
+def saludo() -> str:
+    """'Buenos días' / 'Buenas tardes' / 'Buenas noches' según la hora de México."""
+    hora = datetime.now(HORA_MEXICO).hour
+    if 5 <= hora < 12:
+        return "Buenos días"
+    if 12 <= hora < 19:
+        return "Buenas tardes"
+    return "Buenas noches"
+
+
+PALABRAS_MENORES = {"de", "del", "la", "las", "el", "los", "y", "e"}
+
+
+def iniciales(nombre: str) -> str:
+    """'Lavandería La Estrella' -> 'LE'; 'María López' -> 'ML'; 'Ana' -> 'A'."""
+    palabras = [p for p in (nombre or "").split() if p.lower() not in PALABRAS_MENORES]
+    if len(palabras) > 2:
+        palabras = [palabras[0], palabras[-1]]
+    return "".join(p[0] for p in palabras[:2]).upper() or "?"
+
+
+def dia_y_mes(valor) -> tuple[str, str]:
+    """'2026-11-05' -> ('5', 'nov') para el bloque de fecha de las tarjetas."""
+    fecha = _a_fecha(valor if not isinstance(valor, str) or len(valor) <= 10
+                     else datetime.fromisoformat(valor.replace("Z", "+00:00")))
+    if fecha is None:
+        return ("", "")
+    return (str(fecha.day), MESES[fecha.month - 1])
+
+
+def fecha_larga_hoy() -> str:
+    """'Viernes 30 oct'."""
+    hoy = hoy_mexico()
+    return f"{DIAS_LARGOS[hoy.weekday()]} {hoy.day} {MESES[hoy.month - 1]}"
+
+
 def fecha_corta(valor) -> str:
     """'2026-11-05' -> '05/11/2026'. Las fechas con hora (UTC) se pasan a hora de México."""
     if not valor:
@@ -88,6 +159,11 @@ def cantidad_legible(cantidad, tipo_cobro: str) -> str:
 def registrar_etiquetas(app) -> None:
     app.jinja_env.globals.update(GIROS=GIROS, ESTADOS=ESTADOS, TIPOS_COBRO=TIPOS_COBRO)
     app.jinja_env.filters["fecha_corta"] = fecha_corta
+    app.jinja_env.filters["fecha_amigable"] = fecha_amigable
+    app.jinja_env.globals["fecha_larga_hoy"] = fecha_larga_hoy
+    app.jinja_env.globals["saludo"] = saludo
+    app.jinja_env.globals["dia_y_mes"] = dia_y_mes
+    app.jinja_env.filters["iniciales"] = iniciales
     app.jinja_env.filters["telefono_legible"] = telefono_legible
     app.jinja_env.filters["dinero"] = dinero
     app.jinja_env.filters["numero_corto"] = numero_corto

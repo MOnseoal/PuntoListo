@@ -1,0 +1,332 @@
+/* =====================================================================
+   PuntoListo · Sistema de diseño v2 (sobre Pico CSS)
+   Inspiración: e-wallet (tarjeta principal + accesos rápidos), finanzas
+   (barra de flujo, gráfica semanal, filtros segmentados) y apps médicas
+   (saludo, tarjetas tipo cita, seguimiento por pasos, formas suaves).
+
+   Paleta: verde azulado profundo (calma y confianza) sobre neutros fríos.
+   El color fuerte solo se usa para: acción principal, estado y alertas.
+   Contraste verificado con WCAG AA (≥ 4.5:1) en ambos temas.
+
+   Temas: automático por el teléfono, o forzado desde Ajustes
+   (data-theme="light" | "dark" en <html>).
+   ===================================================================== */
+
+/* ---------- Tema claro ---------- */
+:root:not([data-theme=dark]), [data-theme=light] {
+  --pl-fondo: #f3f5f7;
+  --pl-tarjeta: #ffffff;
+  --pl-texto: #0f1b24;
+  --pl-tenue: #5b6b7a;
+  --pl-borde: #e3e8ee;
+  --pl-acento: #0f766e;
+  --pl-acento-hover: #0b5e58;
+  --pl-sobre-acento: #ffffff;
+  --pl-acento-suave: #e3f2f0;
+  --pl-hero: #0e3b39;
+  --pl-hero-texto: #ffffff;
+  --pl-hero-sub: #a9d5cf;
+  --pl-hero-pista: rgba(255, 255, 255, .14);
+  --pl-sombra: 0 1px 2px rgba(15, 27, 36, .05), 0 4px 16px rgba(15, 27, 36, .05);
+  --pl-ok-bg: #e3f5ea;      --pl-ok: #166534;
+  --pl-alerta-bg: #fdf3d7;  --pl-alerta: #92400e;
+  --pl-peligro-bg: #fdecea; --pl-peligro: #b42318;
+  --pl-info-bg: #edf1f5;    --pl-info: #334155;
+  --pl-wa: #15803d;         --pl-sobre-wa: #ffffff;
+  --pl-flujo-recibido: #94a3b8; --pl-flujo-proceso: #e0a526; --pl-flujo-listo: #34d399;
+}
+
+/* ---------- Tema oscuro (automático o forzado) ---------- */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme]) {
+    --pl-fondo: #0b1114;
+    --pl-tarjeta: #121a1f;
+    --pl-texto: #e5ecef;
+    --pl-tenue: #8fa0ac;
+    --pl-borde: #1f2b33;
+    --pl-acento: #4db6a9;
+    --pl-acento-hover: #66c7bb;
+    --pl-sobre-acento: #062320;
+    --pl-acento-suave: #12302d;
+    --pl-hero: #123532;
+    --pl-hero-texto: #e9f6f4;
+    --pl-hero-sub: #8cc5bd;
+    --pl-hero-pista: rgba(255, 255, 255, .10);
+    --pl-sombra: 0 1px 2px rgba(0, 0, 0, .4);
+    --pl-ok-bg: #0f2a1c;      --pl-ok: #6ee7a0;
+    --pl-alerta-bg: #2e2410;  --pl-alerta: #f5c451;
+    --pl-peligro-bg: #34171a; --pl-peligro: #f59b93;
+    --pl-info-bg: #1a242c;    --pl-info: #cbd5e1;
+    --pl-wa: #3fbf6f;         --pl-sobre-wa: #04170b;
+    --pl-flujo-recibido: #64748b; --pl-flujo-proceso: #d39b22; --pl-flujo-listo: #34d399;
+  }
+}
+[data-theme=dark] {
+  --pl-fondo: #0b1114;
+  --pl-tarjeta: #121a1f;
+  --pl-texto: #e5ecef;
+  --pl-tenue: #8fa0ac;
+  --pl-borde: #1f2b33;
+  --pl-acento: #4db6a9;
+  --pl-acento-hover: #66c7bb;
+  --pl-sobre-acento: #062320;
+  --pl-acento-suave: #12302d;
+  --pl-hero: #123532;
+  --pl-hero-texto: #e9f6f4;
+  --pl-hero-sub: #8cc5bd;
+  --pl-hero-pista: rgba(255, 255, 255, .10);
+  --pl-sombra: 0 1px 2px rgba(0, 0, 0, .4);
+  --pl-ok-bg: #0f2a1c;      --pl-ok: #6ee7a0;
+  --pl-alerta-bg: #2e2410;  --pl-alerta: #f5c451;
+  --pl-peligro-bg: #34171a; --pl-peligro: #f59b93;
+  --pl-info-bg: #1a242c;    --pl-info: #cbd5e1;
+  --pl-wa: #3fbf6f;         --pl-sobre-wa: #04170b;
+  --pl-flujo-recibido: #64748b; --pl-flujo-proceso: #d39b22; --pl-flujo-listo: #34d399;
+}
+
+/* ---------- Pico usa los colores de PuntoListo ----------
+   Se declara en <body> (no en :root) porque Pico define sus variables con
+   selectores más específicos en :root; todo lo visible hereda de body. */
+body {
+  --pico-font-family: "Plus Jakarta Sans", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --pico-border-radius: .75rem;
+  --pico-form-element-spacing-vertical: .7rem;
+  --pico-background-color: var(--pl-fondo);
+  --pico-color: var(--pl-texto);
+  --pico-h1-color: var(--pl-texto); --pico-h2-color: var(--pl-texto); --pico-h3-color: var(--pl-texto);
+  --pico-muted-color: var(--pl-tenue);
+  --pico-muted-border-color: var(--pl-borde);
+  --pico-card-background-color: var(--pl-tarjeta);
+  --pico-card-sectioning-background-color: var(--pl-tarjeta);
+  --pico-card-box-shadow: var(--pl-sombra);
+  --pico-primary: var(--pl-acento);
+  --pico-primary-hover: var(--pl-acento-hover);
+  --pico-primary-underline: color-mix(in srgb, var(--pl-acento) 50%, transparent);
+  --pico-primary-background: var(--pl-acento);
+  --pico-primary-hover-background: var(--pl-acento-hover);
+  --pico-primary-border: var(--pl-acento);
+  --pico-primary-hover-border: var(--pl-acento-hover);
+  --pico-primary-inverse: var(--pl-sobre-acento);
+  --pico-primary-focus: color-mix(in srgb, var(--pl-acento) 30%, transparent);
+  --pico-form-element-background-color: var(--pl-tarjeta);
+  --pico-form-element-border-color: var(--pl-borde);
+  --pico-form-element-focus-color: var(--pl-acento);
+  --pico-secondary: var(--pl-tenue);
+  --pico-secondary-border: var(--pl-borde);
+  --pico-secondary-hover-border: var(--pl-tenue);
+  font-family: var(--pico-font-family);
+  color: var(--pl-texto);
+}
+
+/* ---------- Estructura ---------- */
+html { background: var(--pl-fondo); }
+body { padding-bottom: 6.5rem; background: var(--pl-fondo); }
+main.container, header.container { max-width: 40rem; }
+header.barra { display: flex; justify-content: space-between; align-items: center;
+               padding-top: .9rem; padding-bottom: .25rem; }
+header.barra .marca { display: flex; align-items: center; gap: .45rem; font-weight: 800;
+                      text-decoration: none; color: var(--pl-texto); letter-spacing: -.02em; }
+header.barra .marca img { width: 1.6rem; height: 1.6rem; border-radius: .45rem; }
+h1 { font-size: 1.55rem; font-weight: 800; letter-spacing: -.02em; margin-bottom: .2rem; }
+h1, h2, h3, strong { color: var(--pl-texto); }
+.subtitulo { color: var(--pl-tenue); margin-top: 0; }
+.ayuda { font-size: .85rem; color: var(--pl-tenue); margin-top: -.5rem; }
+.tenue { color: var(--pl-tenue); }
+article { border: 1px solid var(--pl-borde); border-radius: 1rem; box-shadow: var(--pl-sombra); }
+article > header, article > footer { background: transparent; border-color: var(--pl-borde); }
+button, [role=button], input, select, textarea { border-radius: .75rem; }
+.icono { width: 1.25rem; height: 1.25rem; flex: none; }
+.oculto { display: none !important; }
+
+/* ---------- Saludo (estilo app médica) ---------- */
+.saludo { display: flex; align-items: center; gap: .75rem; margin: .5rem 0 1rem; }
+.saludo .avatar { width: 2.75rem; height: 2.75rem; border-radius: 50%; flex: none;
+                  display: grid; place-items: center; font-weight: 700;
+                  background: var(--pl-acento-suave); color: var(--pl-acento); }
+.saludo p { margin: 0; color: var(--pl-tenue); font-size: .9rem; }
+.saludo h1 { margin: 0; font-size: 1.3rem; }
+
+/* ---------- Tarjeta principal (estilo e-wallet) ---------- */
+.hero { background: var(--pl-hero); color: var(--pl-hero-texto); border-radius: 1.25rem;
+        padding: 1.15rem 1.2rem 1.05rem; margin-bottom: 1rem; }
+.hero .fila-hero { display: flex; justify-content: space-between; align-items: center;
+                   color: var(--pl-hero-sub); font-size: .85rem; }
+.hero .cifra { font-size: 2.6rem; font-weight: 800; line-height: 1.1; margin: .2rem 0 .1rem;
+               color: var(--pl-hero-texto); letter-spacing: -.03em; }
+.hero .cifra small { font-size: .95rem; font-weight: 600; color: var(--pl-hero-sub); letter-spacing: 0; }
+.hero .urgentes { display: inline-flex; align-items: center; gap: .35rem; font-size: .8rem; font-weight: 600;
+                  background: var(--pl-hero-pista); color: var(--pl-hero-texto); padding: .2rem .6rem;
+                  border-radius: 1rem; text-decoration: none; }
+.flujo { display: flex; height: .55rem; border-radius: 1rem; overflow: hidden; gap: 3px;
+         background: var(--pl-hero-pista); margin: .8rem 0 .55rem; }
+.flujo span { display: block; min-width: 3px; }
+.flujo .f-recibido { background: var(--pl-flujo-recibido); }
+.flujo .f-en_proceso { background: var(--pl-flujo-proceso); }
+.flujo .f-listo { background: var(--pl-flujo-listo); }
+.leyenda { display: flex; gap: 1rem; flex-wrap: wrap; font-size: .8rem; }
+.leyenda a { color: var(--pl-hero-texto); text-decoration: none; display: inline-flex; align-items: center; gap: .35rem; }
+.leyenda i { width: .55rem; height: .55rem; border-radius: 50%; display: inline-block; }
+
+/* ---------- Accesos rápidos (estilo e-wallet) ---------- */
+.accesos { display: grid; grid-template-columns: repeat(4, 1fr); gap: .5rem; margin-bottom: 1.1rem; }
+.accesos a { display: flex; flex-direction: column; align-items: center; gap: .4rem; text-decoration: none;
+             color: var(--pl-texto); font-size: .76rem; font-weight: 600; text-align: center; }
+.accesos .circulo { width: 3.1rem; height: 3.1rem; border-radius: 1rem; display: grid; place-items: center;
+                    background: var(--pl-tarjeta); border: 1px solid var(--pl-borde); color: var(--pl-acento);
+                    box-shadow: var(--pl-sombra); }
+.accesos a:first-child .circulo { background: var(--pl-acento); color: var(--pl-sobre-acento); border-color: var(--pl-acento); }
+.accesos .circulo svg { width: 1.4rem; height: 1.4rem; }
+
+/* ---------- Gráfica semanal (estilo finanzas) ---------- */
+.semana { background: var(--pl-tarjeta); border: 1px solid var(--pl-borde); border-radius: 1rem;
+          padding: .9rem 1rem .75rem; box-shadow: var(--pl-sombra); margin-bottom: 1rem; }
+.semana .cabeza { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: .6rem; }
+.semana .cabeza strong { font-size: .95rem; }
+.semana .cabeza span { font-size: .8rem; color: var(--pl-tenue); }
+.barras { display: grid; grid-template-columns: repeat(7, 1fr); gap: .45rem; align-items: end; height: 4.5rem; }
+.barras div { display: flex; flex-direction: column; align-items: center; justify-content: flex-end; height: 100%; gap: .3rem; }
+.barras b { display: block; width: 100%; max-width: 1.6rem; border-radius: .4rem .4rem .2rem .2rem;
+            background: var(--pl-acento-suave); min-height: .3rem; }
+.barras div.hoy b { background: var(--pl-acento); }
+.barras small { font-size: .7rem; color: var(--pl-tenue); line-height: 1; }
+.barras div.hoy small { color: var(--pl-texto); font-weight: 700; }
+
+/* ---------- Títulos de sección ---------- */
+.seccion { display: flex; justify-content: space-between; align-items: baseline; font-size: 1rem; font-weight: 700;
+           margin: 1.3rem 0 .55rem; color: var(--pl-texto); }
+.seccion small { font-size: .8rem; font-weight: 500; color: var(--pl-tenue); }
+.seccion a { font-size: .85rem; font-weight: 600; text-decoration: none; }
+
+/* ---------- Tarjetas de orden (estilo cita médica) ---------- */
+.lista { display: flex; flex-direction: column; gap: .55rem; margin-bottom: 1rem; }
+.tarjeta { display: flex; flex-wrap: wrap; align-items: center; gap: .55rem .8rem; padding: .75rem .85rem;
+           background: var(--pl-tarjeta); border: 1px solid var(--pl-borde); border-radius: 1rem;
+           box-shadow: var(--pl-sombra); }
+.tarjeta .fecha { width: 3.1rem; height: 3.3rem; flex: none; border-radius: .8rem; display: flex; flex-direction: column;
+                  align-items: center; justify-content: center; background: var(--pl-info-bg); color: var(--pl-info);
+                  line-height: 1.05; text-decoration: none; }
+.tarjeta .fecha b { font-size: 1.15rem; font-weight: 800; }
+.tarjeta .fecha small { font-size: .66rem; text-transform: uppercase; letter-spacing: .04em; font-weight: 600; }
+.tarjeta .fecha.sin-fecha { background: var(--pl-fondo); color: var(--pl-tenue); }
+.tarjeta .fecha.alerta-hoy { background: var(--pl-alerta-bg); color: var(--pl-alerta); }
+.tarjeta .fecha.alerta-atrasada { background: var(--pl-peligro-bg); color: var(--pl-peligro); }
+.tarjeta .fecha.estado-listo { background: var(--pl-ok-bg); color: var(--pl-ok); }
+.tarjeta .info { flex: 1 1 8rem; min-width: 0; text-decoration: none; color: inherit; }
+.tarjeta .titulo { font-weight: 700; display: flex; gap: .4rem; align-items: center; flex-wrap: wrap; color: var(--pl-texto); }
+.tarjeta .detalle { display: block; font-size: .84rem; color: var(--pl-tenue); white-space: nowrap;
+                    overflow: hidden; text-overflow: ellipsis; }
+.tarjeta .acciones { display: flex; gap: .4rem; margin-left: auto; }
+.tarjeta form { margin: 0; }
+.accion { margin: 0; padding: .45rem .8rem; font-size: .84rem; font-weight: 600; width: auto; white-space: nowrap;
+          border-radius: .7rem; display: inline-flex; align-items: center; gap: .3rem; }
+a.accion { display: inline-flex; }
+.accion.wa, .whatsapp { background: var(--pl-wa); border-color: var(--pl-wa); color: var(--pl-sobre-wa); }
+.accion.wa svg, .whatsapp svg { width: 1.05rem; height: 1.05rem; }
+
+/* ---------- Etiquetas de estado y alertas ---------- */
+.etiqueta { display: inline-block; padding: .12rem .55rem; border-radius: 1rem; font-size: .72rem;
+            font-weight: 700; vertical-align: middle; white-space: nowrap; }
+.estado-recibido, .alerta-manana { background: var(--pl-info-bg); color: var(--pl-info); }
+.estado-en_proceso, .alerta-hoy  { background: var(--pl-alerta-bg); color: var(--pl-alerta); }
+.estado-listo                    { background: var(--pl-ok-bg); color: var(--pl-ok); }
+.estado-entregado                { background: var(--pl-fondo); color: var(--pl-tenue); }
+.alerta-atrasada                 { background: var(--pl-peligro-bg); color: var(--pl-peligro); }
+
+/* ---------- Mensajes ---------- */
+.mensaje { padding: .75rem 1rem; border-radius: .9rem; margin-bottom: 1rem; font-size: .92rem; font-weight: 500; }
+.mensaje.error { background: var(--pl-peligro-bg); color: var(--pl-peligro); }
+.mensaje.exito { background: var(--pl-ok-bg); color: var(--pl-ok); }
+.mensaje.info  { background: var(--pl-info-bg); color: var(--pl-info); }
+
+/* ---------- Filtros segmentados (estilo finanzas) ---------- */
+.chips { display: flex; gap: .35rem; overflow-x: auto; padding: .25rem; margin-bottom: .8rem;
+         background: var(--pl-tarjeta); border: 1px solid var(--pl-borde); border-radius: 1rem; scrollbar-width: none; }
+.chips::-webkit-scrollbar { display: none; }
+.chips a { white-space: nowrap; font-size: .84rem; font-weight: 600; padding: .4rem .8rem; border-radius: .75rem;
+           color: var(--pl-tenue); text-decoration: none; }
+.chips a[aria-current="true"] { background: var(--pl-acento); color: var(--pl-sobre-acento); }
+
+/* ---------- Buscador ---------- */
+form[role=search] { margin-bottom: .75rem; }
+form[role=search] input { background: var(--pl-tarjeta); }
+
+/* ---------- Detalle de orden: cabecera y pasos (estilo app médica) ---------- */
+.cabecera-orden { background: var(--pl-tarjeta); border: 1px solid var(--pl-borde); border-radius: 1.25rem;
+                  padding: 1.1rem 1.15rem; box-shadow: var(--pl-sombra); margin-bottom: 1rem; }
+.cabecera-orden .folio { font-size: 1.7rem; font-weight: 800; letter-spacing: -.02em; margin: 0; color: var(--pl-texto); }
+.cabecera-orden .cliente { display: flex; align-items: center; gap: .65rem; margin-top: .85rem; }
+.cabecera-orden .cliente .avatar { width: 2.4rem; height: 2.4rem; border-radius: 50%; display: grid; place-items: center;
+                                   font-weight: 700; font-size: .85rem; background: var(--pl-acento-suave); color: var(--pl-acento); }
+.pasos { display: grid; grid-template-columns: repeat(4, 1fr); margin: 1.1rem 0 .2rem; position: relative; }
+.pasos::before { content: ""; position: absolute; top: .7rem; left: 12.5%; right: 12.5%; height: 2px; background: var(--pl-borde); }
+.pasos .paso { position: relative; display: flex; flex-direction: column; align-items: center; gap: .35rem;
+               font-size: .7rem; color: var(--pl-tenue); text-align: center; }
+.pasos .punto { width: 1.45rem; height: 1.45rem; border-radius: 50%; background: var(--pl-tarjeta); border: 2px solid var(--pl-borde);
+                display: grid; place-items: center; z-index: 1; }
+.pasos .hecho .punto { background: var(--pl-acento); border-color: var(--pl-acento); color: var(--pl-sobre-acento); }
+.pasos .hecho .punto svg { width: .8rem; height: .8rem; }
+.pasos .actual .punto { border-color: var(--pl-acento); box-shadow: 0 0 0 4px var(--pl-acento-suave); }
+.pasos .actual { color: var(--pl-texto); font-weight: 700; }
+.pasos .progreso { position: absolute; top: .7rem; left: 12.5%; height: 2px; background: var(--pl-acento); }
+
+/* ---------- Filas genéricas (clientes, catálogo, ajustes) ---------- */
+.fila { display: flex; justify-content: space-between; align-items: center; gap: .6rem;
+        padding: .75rem 0; border-bottom: 1px solid var(--pl-borde); color: inherit; text-decoration: none; }
+.fila:last-child { border-bottom: 0; }
+.fila form { margin: 0; }
+.fila .avatar { width: 2.3rem; height: 2.3rem; border-radius: 50%; display: grid; place-items: center; flex: none;
+                font-weight: 700; font-size: .8rem; background: var(--pl-acento-suave); color: var(--pl-acento); }
+.enlace-fila { color: inherit; text-decoration: none; flex: 1; min-width: 0; }
+.inactivo { opacity: .55; }
+.boton-chico { padding: .35rem .7rem; font-size: .84rem; margin: 0; width: auto; }
+.boton-ancho { display: block; width: 100%; margin-bottom: 1rem; }
+.menu-lista { background: var(--pl-tarjeta); border: 1px solid var(--pl-borde); border-radius: 1rem; padding: 0 1rem;
+              box-shadow: var(--pl-sombra); margin-bottom: 1rem; }
+
+/* ---------- Selector de tema (segmentado) ---------- */
+.segmentado { display: grid; grid-template-columns: repeat(3, 1fr); gap: .3rem; padding: .25rem;
+              background: var(--pl-fondo); border: 1px solid var(--pl-borde); border-radius: .9rem; }
+.segmentado button { margin: 0; padding: .45rem .3rem; font-size: .84rem; font-weight: 600; border: 0;
+                     background: transparent; color: var(--pl-tenue); border-radius: .7rem; }
+.segmentado button[aria-pressed="true"] { background: var(--pl-tarjeta); color: var(--pl-texto); box-shadow: var(--pl-sombra); }
+
+/* ---------- Nueva orden ---------- */
+.servicio-orden { display: grid; grid-template-columns: 1fr auto; gap: .5rem; align-items: center;
+                  padding: .6rem 0; border-bottom: 1px solid var(--pl-borde); }
+.servicio-orden:last-child { border-bottom: 0; }
+.servicio-orden label { margin: 0; }
+.contador-cantidad { display: flex; align-items: center; gap: .3rem; }
+.contador-cantidad input { width: 4.2rem; margin: 0; text-align: center; padding-left: .3rem; padding-right: .3rem; font-weight: 700; }
+.contador-cantidad button { margin: 0; width: 2.4rem; height: 2.4rem; padding: 0; font-size: 1.2rem; line-height: 1;
+                            border-radius: 50%; }
+.selector-cliente .opciones { max-height: 15rem; overflow-y: auto; border: 1px solid var(--pl-borde); border-radius: .9rem; }
+.selector-cliente .opcion { display: flex; width: 100%; gap: .65rem; align-items: center; margin: 0; padding: .6rem .75rem;
+                            border-top: 1px solid var(--pl-borde); cursor: pointer; }
+.selector-cliente .opcion:first-child { border-top: 0; }
+.selector-cliente .opcion input { margin: 0; }
+.selector-cliente .opcion:has(input:checked) { background: var(--pl-acento-suave); font-weight: 700; }
+
+/* ---------- Barra inferior flotante con botón central ---------- */
+nav.inferior {
+  position: fixed; left: .75rem; right: .75rem; bottom: calc(.6rem + env(safe-area-inset-bottom)); z-index: 10;
+  max-width: 30rem; margin: 0 auto;
+  display: grid; grid-template-columns: repeat(5, 1fr); align-items: center;
+  background: var(--pl-tarjeta); border: 1px solid var(--pl-borde); border-radius: 1.4rem;
+  box-shadow: 0 8px 28px rgba(0, 0, 0, .12); padding: .45rem .25rem;
+}
+nav.inferior a { display: flex; flex-direction: column; align-items: center; gap: .15rem; font-size: .68rem;
+                 font-weight: 600; color: var(--pl-tenue); text-decoration: none; padding: .15rem 0; }
+nav.inferior a svg { width: 1.4rem; height: 1.4rem; }
+nav.inferior a[aria-current="page"] { color: var(--pl-acento); }
+nav.inferior a.central { margin-top: -1.7rem; }
+nav.inferior a.central span { width: 3.3rem; height: 3.3rem; border-radius: 50%; display: grid; place-items: center;
+                              background: var(--pl-acento); color: var(--pl-sobre-acento);
+                              box-shadow: 0 6px 16px color-mix(in srgb, var(--pl-acento) 45%, transparent);
+                              border: 4px solid var(--pl-fondo); }
+nav.inferior a.central svg { width: 1.6rem; height: 1.6rem; }
+
+/* ---------- Pantallas de acceso ---------- */
+.acceso-hero { text-align: center; margin: 1.5rem 0 1.25rem; }
+.acceso-hero img { width: 4rem; height: 4rem; border-radius: 1.1rem; margin-bottom: .75rem; box-shadow: var(--pl-sombra); }
+.acceso-hero h1 { margin-bottom: .25rem; }
+.acceso-hero p { color: var(--pl-tenue); margin: 0; }

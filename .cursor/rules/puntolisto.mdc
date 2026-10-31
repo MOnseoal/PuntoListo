@@ -34,12 +34,15 @@ puntolisto/etiquetas.py     -> GIROS, ESTADOS, TIPOS_COBRO y filtro fecha_corta
 puntolisto/modelos/*.py     -> MODELO: repositorios, única capa que consulta Supabase
 puntolisto/<modulo>/routes.py -> CONTROLADORES: Blueprints auth, panel, negocio, clientes, ordenes
 puntolisto/avisos/          -> módulo (no Blueprint) que arma el enlace wa.me
+puntolisto/ordenes/presentacion.py -> alertas (atrasada/hoy/mañana), resumen y acción rápida de cada tarjeta
+puntolisto/recursos/        -> app.css, app.js, íconos, manifest y sw.js (servidos por Flask, también en Vercel)
 puntolisto/templates/       -> VISTAS Jinja2, una carpeta por módulo, todas extienden base.html
+puntolisto/templates/_tarjetas.html -> macro tarjeta_orden(orden, volver) reutilizada en panel y lista
 docs/                       -> ACT-11_base_de_datos.md y sql/001_esquema.sql
 ```
 
 ## Reglas obligatorias
-1. **Base de datos:** el esquema está en `docs/sql/001_esquema.sql` y su explicación en
+1. **Base de datos:** el esquema está en `docs/sql/001_esquema.sql` + `002_permitir_borrar_cuenta.sql` y su explicación en
    `docs/ACT-11_base_de_datos.md`. Léelos antes de escribir consultas. No inventes columnas.
    Cambios al esquema = nuevo archivo `docs/sql/00N_descripcion.sql`, nunca editar el 001.
 2. **Seguridad:**
@@ -60,8 +63,20 @@ docs/                       -> ACT-11_base_de_datos.md y sql/001_esquema.sql
 7. **Estados** (claves en BD): `recibido`, `en_proceso`, `listo`, `entregado`. Mostrar con `ESTADOS[...]`.
 8. **Errores de Supabase:** capturar `postgrest.exceptions.APIError` (código `23505` = duplicado)
    y `supabase.AuthError`; mostrar mensajes amables con `flash(texto, "error"|"exito"|"info")`.
-9. **Interfaz:** mobile-first, HTML semántico que Pico estiliza solo; botones grandes; textos
-   en español sencillo para personas sin formación técnica. Estilos propios mínimos en `base.html`.
+9. **Interfaz (sistema de diseño v2):**
+   - Base: Pico CSS 2 + `puntolisto/recursos/app.css` + tipografía Plus Jakarta Sans (Google Fonts).
+   - Paleta: verde azulado profundo (`--pl-acento`) sobre neutros fríos. El color fuerte SOLO para la
+     acción principal, el estado (verde listo, ámbar en proceso/vence hoy, rojo atrasada) y alertas.
+     Contraste verificado WCAG AA en ambos temas: no cambies colores sin revisar contraste.
+   - Temas: automático por el teléfono, o forzado en Ajustes (`data-theme="light|dark"` en <html>,
+     guardado en localStorage `pl-tema`). Usa SIEMPRE variables `--pl-*`; nunca colores fijos.
+   - Componentes: `.hero` (tarjeta principal), `.flujo` (barra de estados), `.accesos` (accesos rápidos),
+     `.semana`/`.barras` (gráfica 7 días), `.tarjeta` con `.fecha` (estilo cita), `.cabecera-orden` +
+     `.pasos` (seguimiento), `.chips` (filtro segmentado), `.menu-lista` + `.fila` + `.avatar`,
+     `.segmentado`, `nav.inferior` con botón `.central` (+ Nueva orden).
+   - Íconos: `templates/_iconos.html` → `<svg class="icono"><use href="#i-nombre"/></svg>`.
+   - Si cambias app.css o app.js, sube `VERSION` en `puntolisto/recursos/__init__.py`.
+   - `app.js` es mejora progresiva: todo debe funcionar sin JavaScript (salvo el selector de tema).
 10. **Pruebas:** cada módulo nuevo agrega pruebas en `tests/` simulando Supabase con monkeypatch
     (ver `tests/test_rutas.py`). Correr `python -m pytest` antes de cada commit.
 11. **Commits:** un commit por actividad, mensaje `ACT-xx: descripción`.
@@ -76,15 +91,23 @@ docs/                       -> ACT-11_base_de_datos.md y sql/001_esquema.sql
 - [x] ACT-18 botón y mensaje wa.me (aparece en estado "listo"; módulo puntolisto/avisos)
 - [ ] ACT-16 / ACT-19 / ACT-20 pruebas manuales (lavandería, sastrería, Android) y corrección de errores
 
+## Bloque 1 de mejoras (hecho)
+Barra inferior, acciones rápidas en tarjetas (Empezar → / Lista → / Avisar / Entregar →) que regresan a la
+página de origen con `volver` validado, alertas de entrega, lista de órdenes con buscador (folio, nombre o
+teléfono) y filtros, botones −/+, elegir cliente escribiendo, bloqueo de doble envío, Ajustes, PWA instalable
+y modo oscuro. Planes Gratis/Premium: AÚN NO decididos, no implementarlos.
+
 ## Mapa de rutas
 | URL | Qué hace |
 |---|---|
 | `/entrar`, `/registro`, `/salir` | Autenticación (auth) |
 | `/negocio/configurar` | Alta del negocio (una sola vez) |
 | `/negocio/catalogo`, `/negocio/catalogo/nuevo`, `/negocio/catalogo/<id>/editar`, `/negocio/catalogo/<id>/activo` | Catálogo |
-| `/` | Panel: órdenes activas agrupadas por estado |
+| `/` | Panel: urgentes, listas, en proceso, recibidas (con acciones rápidas) |
+| `/negocio/ajustes` | Datos del negocio, catálogo, instalar app, cerrar sesión |
+| `/manifest.webmanifest`, `/sw.js`, `/recursos/<archivo>` | App instalable y estilos |
 | `/clientes/`, `/clientes/nuevo[?volver=orden]`, `/clientes/<id>/editar` | Clientes |
-| `/ordenes/nueva[?cliente_id=]`, `/ordenes/<id>`, `/ordenes/<id>/estado`, `/ordenes/entregadas` | Órdenes, estados y aviso |
+| `/ordenes/?estado=&q=`, `/ordenes/nueva[?cliente_id=]`, `/ordenes/<id>`, `/ordenes/<id>/estado` | Órdenes, estados y aviso |
 | `/salud` | Revisión de configuración (sin datos sensibles) |
 
 ## Funciones diferidas: cómo se agregarían después (NO hacerlas ahora)

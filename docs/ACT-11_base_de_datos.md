@@ -490,3 +490,9 @@ Casos ya probados con este esquema (PostgreSQL simulando Supabase):
   - Estados: `recibido` → Recibido, `en_proceso` → En proceso, `listo` → Listo, `entregado` → Entregado.
   - Cobro: `kilo` → Por kilo, `pieza` → Por pieza, `ajuste` → Por ajuste.
 - **Errores de la BD** llegan como excepciones `postgrest.exceptions.APIError`; capturarlas y mostrar un mensaje amable (ej. teléfono repetido → código `23505`).
+
+## 7. Cambios posteriores
+
+| Script | Fecha | Qué cambia |
+|---|---|---|
+| `docs/sql/002_permitir_borrar_cuenta.sql` | 30-oct-2026 | Las llaves `ordenes → clientes` y `orden_servicios → servicios` pasan a `on delete no action deferrable initially deferred`. Sigue prohibido borrar un cliente o servicio con órdenes, pero ya se puede eliminar una cuenta completa (usuario → comercio → todo lo demás) desde Supabase. |

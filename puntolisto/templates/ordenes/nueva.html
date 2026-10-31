@@ -2,10 +2,8 @@
 {% block titulo %}Nueva orden{% endblock %}
 
 {% block contenido %}
-<hgroup>
-  <h1>Nueva orden</h1>
-  <p>El folio se asigna solo al guardar.</p>
-</hgroup>
+<h1>Nueva orden</h1>
+<p class="subtitulo">El folio se asigna solo al guardar.</p>
 
 {% if not catalogo %}
 <article>
@@ -16,48 +14,61 @@
 <form method="post" novalidate>
   <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
 
-  <article>
+  {# ---------- 1. Cliente: se elige escribiendo (con JS) o tocando la lista ---------- #}
+  <article class="selector-cliente">
     <header><strong>1. Cliente</strong></header>
     {% if clientes %}
-    <label for="cliente_id">Cliente</label>
-    <select id="cliente_id" name="cliente_id" required>
-      <option value="">Elige un cliente…</option>
+    <input type="search" id="buscar-cliente" placeholder="Escribe nombre o teléfono"
+           aria-label="Buscar cliente" autocomplete="off">
+    <div class="opciones" role="radiogroup" aria-label="Clientes">
       {% for c in clientes %}
-      <option value="{{ c.id }}" {% if valores.cliente_id|string == c.id|string %}selected{% endif %}>
-        {{ c.nombre }} · {{ c.telefono|telefono_legible }}
-      </option>
+      <label class="opcion" data-nombre="{{ c.nombre }}" data-telefono="{{ c.telefono }}">
+        <input type="radio" name="cliente_id" value="{{ c.id }}"
+               {% if valores.cliente_id|string == c.id|string %}checked{% endif %}>
+        <span>{{ c.nombre }}<br><small class="tenue">{{ c.telefono|telefono_legible }}</small></span>
+      </label>
       {% endfor %}
-    </select>
+    </div>
+    <p id="sin-clientes" class="tenue oculto" style="margin:.5rem 0 0">Ningún cliente coincide.</p>
     {% else %}
-    <p>Aún no tienes clientes.</p>
+    <p class="tenue">Aún no tienes clientes.</p>
     {% endif %}
-    <a href="{{ url_for('clientes.nuevo', volver='orden') }}">+ Cliente nuevo</a>
+    <p style="margin:.75rem 0 0"><a href="{{ url_for('clientes.nuevo', volver='orden') }}">+ Cliente nuevo</a></p>
   </article>
 
+  {# ---------- 2. Servicios con botones − / + ---------- #}
   <article>
-    <header><strong>2. Servicios</strong> <small>(escribe la cantidad solo en los que lleva)</small></header>
+    <header><strong>2. Servicios</strong> <small class="tenue">(cantidad solo en los que lleva)</small></header>
     {% for s in catalogo %}
+    {% set paso = 0.5 if s.tipo_cobro == "kilo" else 1 %}
     <div class="servicio-orden">
       <label for="cantidad_{{ s.id }}">
         {{ s.nombre }}<br>
-        <small>{{ TIPOS_COBRO[s.tipo_cobro] }} · {{ s.precio|dinero }}</small>
+        <small class="tenue">{{ TIPOS_COBRO[s.tipo_cobro] }} · {{ s.precio|dinero }}</small>
       </label>
-      <input type="text" id="cantidad_{{ s.id }}" name="cantidad_{{ s.id }}"
-             value="{{ valores.cantidades.get(s.id|string, '') }}"
-             inputmode="{{ 'decimal' if s.tipo_cobro == 'kilo' else 'numeric' }}"
-             placeholder="{{ 'kg' if s.tipo_cobro == 'kilo' else 'cant.' }}">
+      <div class="contador-cantidad">
+        <button type="button" class="secondary outline" data-paso="-{{ paso }}" data-campo="cantidad_{{ s.id }}"
+                aria-label="Menos {{ s.nombre }}">−</button>
+        <input type="text" id="cantidad_{{ s.id }}" name="cantidad_{{ s.id }}"
+               value="{{ valores.cantidades.get(s.id|string, '') }}"
+               inputmode="{{ 'decimal' if s.tipo_cobro == 'kilo' else 'numeric' }}"
+               placeholder="{{ 'kg' if s.tipo_cobro == 'kilo' else '0' }}">
+        <button type="button" class="secondary outline" data-paso="{{ paso }}" data-campo="cantidad_{{ s.id }}"
+                aria-label="Más {{ s.nombre }}">+</button>
+      </div>
     </div>
     {% endfor %}
   </article>
 
+  {# ---------- 3. Entrega ---------- #}
   <article>
-    <header><strong>3. Entrega</strong> <small>(opcional)</small></header>
+    <header><strong>3. Entrega</strong> <small class="tenue">(opcional)</small></header>
     <label for="fecha_entrega">Fecha prometida de entrega</label>
     <input type="date" id="fecha_entrega" name="fecha_entrega" value="{{ valores.fecha_entrega }}">
 
     <label for="notas">Notas</label>
     <textarea id="notas" name="notas" maxlength="500" rows="2"
-              placeholder="Ej. Sin suavizante, mancha en la manga…">{{ valores.notas }}</textarea>
+              placeholder="Sin suavizante, mancha en la manga…">{{ valores.notas }}</textarea>
   </article>
 
   <button type="submit">Registrar orden</button>
