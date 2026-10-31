@@ -1,0 +1,76 @@
+---
+description: Contexto y reglas del proyecto PuntoListo (Flask + Supabase)
+alwaysApply: true
+---
+
+# PuntoListo — contexto para el asistente
+
+Sistema web para que microcomercios (lavanderías, sastrerías, talleres) registren
+órdenes con folio, cambien su estado y avisen al cliente por WhatsApp (enlace wa.me).
+Proyecto académico (UJAT, materia Emprendedores), una sola desarrolladora, entrega 20-nov-2026.
+Responde y comenta el código **en español**.
+
+## Stack (no cambiar sin que la desarrolladora lo pida)
+- Python 3.14, Flask 3.1, plantillas Jinja2, Pico CSS 2 por CDN (sin build, sin Tailwind, sin JS pesado).
+- Supabase: PostgreSQL + Auth + RLS, con la librería `supabase` (supabase-py 2.x).
+- Despliegue en Vercel (función serverless, sin estado entre peticiones). Estáticos en `public/`, no en `static/`.
+- Pruebas con pytest (`requirements-dev.txt`). Probar en Chrome de Android (Honor 600).
+
+## PMV (solo esto entra en la entrega)
+a) registro/inicio de sesión · b) configuración por giro y catálogo · c) panel ·
+d) órdenes con folio · g) estados · h) aviso WhatsApp.
+Funciones diferidas (NO programarlas): cálculo de tarifa/anticipo (e, f), historial (i),
+reportes (j), agenda (k), inventario (l).
+
+## Arquitectura MVC
+```
+app.py                      -> entrypoint (Vercel busca `app`)
+puntolisto/__init__.py      -> create_app(): config, CSRF, etiquetas, registro de Blueprints
+puntolisto/config.py        -> variables de entorno
+puntolisto/supabase_cliente.py -> nuevo_cliente() / cliente_con_token()
+puntolisto/seguridad.py     -> CSRF + @login_requerido + @negocio_requerido
+puntolisto/validaciones.py  -> funciones puras (teléfono, abreviatura, correo…)
+puntolisto/etiquetas.py     -> GIROS, ESTADOS, TIPOS_COBRO y filtro fecha_corta
+puntolisto/modelos/*.py     -> MODELO: repositorios, única capa que consulta Supabase
+puntolisto/<modulo>/routes.py -> CONTROLADORES: Blueprints auth, panel, negocio, clientes, ordenes
+puntolisto/avisos/          -> módulo (no Blueprint) que arma el enlace wa.me
+puntolisto/templates/       -> VISTAS Jinja2, una carpeta por módulo, todas extienden base.html
+docs/                       -> ACT-11_base_de_datos.md y sql/001_esquema.sql
+```
+
+## Reglas obligatorias
+1. **Base de datos:** el esquema está en `docs/sql/001_esquema.sql` y su explicación en
+   `docs/ACT-11_base_de_datos.md`. Léelos antes de escribir consultas. No inventes columnas.
+   Cambios al esquema = nuevo archivo `docs/sql/00N_descripcion.sql`, nunca editar el 001.
+2. **Seguridad:**
+   - Usar SIEMPRE `g.sb` (cliente con el token del usuario) dentro de rutas protegidas; así aplica RLS.
+   - NUNCA usar la clave `service_role`/`secret` ni crear un cliente de Supabase global.
+   - Toda ruta privada lleva `@login_requerido` y, si necesita el negocio, `@negocio_requerido` debajo
+     (deja `g.comercio` con id, nombre, abreviatura, giro, telefono).
+   - Todo `<form method="post">` incluye `<input type="hidden" name="csrf_token" value="{{ csrf_token() }}">`.
+3. **Controladores delgados:** las rutas validan con `validaciones.py`, llaman al repositorio
+   de `modelos/` y renderizan. Nada de `g.sb.table(...)` dentro de `routes.py`.
+4. **Repositorios:** funciones que reciben `sb` como primer parámetro y devuelven dict/list.
+   Llamadas RPC siempre con dict de parámetros, aunque esté vacío: `sb.rpc("fn", {})`.
+5. **Órdenes:** crear SOLO con `sb.rpc("crear_orden", {...})` (guarda orden + servicios en una
+   transacción). No enviar `numero` ni `folio`: los asigna un trigger (`ABREV-0001`).
+6. **Teléfonos:** el usuario escribe 10 dígitos; guardar `52` + 10 dígitos con
+   `validaciones.normalizar_telefono()`. El enlace es `https://wa.me/52XXXXXXXXXX?text=` +
+   `urllib.parse.quote(mensaje)` (acentos incluidos).
+7. **Estados** (claves en BD): `recibido`, `en_proceso`, `listo`, `entregado`. Mostrar con `ESTADOS[...]`.
+8. **Errores de Supabase:** capturar `postgrest.exceptions.APIError` (código `23505` = duplicado)
+   y `supabase.AuthError`; mostrar mensajes amables con `flash(texto, "error"|"exito"|"info")`.
+9. **Interfaz:** mobile-first, HTML semántico que Pico estiliza solo; botones grandes; textos
+   en español sencillo para personas sin formación técnica. Estilos propios mínimos en `base.html`.
+10. **Pruebas:** cada módulo nuevo agrega pruebas en `tests/` simulando Supabase con monkeypatch
+    (ver `tests/test_rutas.py`). Correr `python -m pytest` antes de cada commit.
+11. **Commits:** un commit por actividad, mensaje `ACT-xx: descripción`.
+
+## Estado del trabajo
+- [x] ACT-11 base de datos (Supabase)
+- [x] ACT-12 autenticación, estructura base y panel principal
+- [ ] ACT-13 módulo de clientes (alta, edición, consulta, búsqueda)
+- [ ] ACT-14 catálogo de servicios configurable (editar ejemplos, agregar, desactivar)
+- [ ] ACT-15 creación de órdenes con folio
+- [ ] ACT-17 cambio de estados
+- [ ] ACT-18 botón y mensaje wa.me

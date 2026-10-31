@@ -1,0 +1,53 @@
+<!doctype html>
+<html lang="es" data-theme="light">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block titulo %}PuntoListo{% endblock %} · PuntoListo</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.min.css">
+  <style>
+    /* Estilos propios mínimos (Pico hace casi todo) */
+    .marca { font-weight: 700; text-decoration: none; }
+    .mensaje { padding: .75rem 1rem; border-radius: var(--pico-border-radius); margin-bottom: 1rem; }
+    .mensaje.error { background: #fde8e8; color: #9b1c1c; }
+    .mensaje.exito { background: #def7ec; color: #03543f; }
+    .mensaje.info  { background: #e1effe; color: #1e429f; }
+    .ayuda { font-size: .85rem; color: var(--pico-muted-color); margin-top: -.5rem; }
+    .contador { font-size: 2rem; font-weight: 700; margin: 0; }
+    .resumen { display: grid; grid-template-columns: repeat(3, 1fr); gap: .5rem; text-align: center; }
+    .resumen article { margin: 0; padding: .75rem .25rem; }
+    .orden { display: flex; justify-content: space-between; gap: .5rem; padding: .5rem 0;
+             border-bottom: 1px solid var(--pico-muted-border-color); }
+    .orden:last-child { border-bottom: 0; }
+    nav form { margin: 0; }
+    nav button { padding: .35rem .75rem; margin: 0; }
+  </style>
+</head>
+<body>
+  <header class="container">
+    <nav>
+      <ul><li><a class="marca" href="{{ url_for('panel.inicio') }}">PuntoListo</a></li></ul>
+      {% if session.get('access_token') %}
+      <ul>
+        <li>
+          <form method="post" action="{{ url_for('auth.salir') }}">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <button type="submit" class="secondary outline">Salir</button>
+          </form>
+        </li>
+      </ul>
+      {% endif %}
+    </nav>
+  </header>
+
+  <main class="container">
+    {% with mensajes = get_flashed_messages(with_categories=true) %}
+      {% for categoria, texto in mensajes %}
+        <div class="mensaje {{ categoria }}" role="alert">{{ texto }}</div>
+      {% endfor %}
+    {% endwith %}
+
+    {% block contenido %}{% endblock %}
+  </main>
+</body>
+</html>

@@ -1,0 +1,40 @@
+{% extends "base.html" %}
+{% block titulo %}Panel{% endblock %}
+
+{% block contenido %}
+<hgroup>
+  <h1>{{ comercio.nombre }}</h1>
+  <p>{{ GIROS[comercio.giro] }} · Folios {{ comercio.abreviatura }}-0001</p>
+</hgroup>
+
+{# El botón se conecta en ACT-15 (órdenes con folio) #}
+<button disabled style="width:100%; margin-bottom:1rem">+ Nueva orden (próximamente)</button>
+
+<section class="resumen" aria-label="Resumen de órdenes">
+  {% for estado, lista in grupos.items() %}
+  <article>
+    <p class="contador">{{ lista|length }}</p>
+    <small>{{ ESTADOS[estado] }}</small>
+  </article>
+  {% endfor %}
+</section>
+
+{% if total == 0 %}
+<article>
+  <p>Aún no tienes órdenes. Cuando registres una, aparecerá aquí agrupada por estado.</p>
+</article>
+{% else %}
+  {% for estado, lista in grupos.items() if lista %}
+  <article>
+    <header><strong>{{ ESTADOS[estado] }}</strong> ({{ lista|length }})</header>
+    {% for orden in lista %}
+    <div class="orden">
+      <span><strong>{{ orden.folio }}</strong><br>
+        <small>{{ orden.clientes.nombre if orden.clientes else "" }}</small></span>
+      <small>{% if orden.fecha_entrega %}Entrega {{ orden.fecha_entrega|fecha_corta }}{% endif %}</small>
+    </div>
+    {% endfor %}
+  </article>
+  {% endfor %}
+{% endif %}
+{% endblock %}

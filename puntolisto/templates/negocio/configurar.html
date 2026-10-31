@@ -1,0 +1,42 @@
+{% extends "base.html" %}
+{% block titulo %}Configura tu negocio{% endblock %}
+
+{% block contenido %}
+<article>
+  <header>
+    <h1>Configura tu negocio</h1>
+    <p>Solo una vez. Con el giro cargamos servicios de ejemplo que luego puedes editar.</p>
+  </header>
+
+  <form method="post" novalidate>
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+    <label for="nombre">Nombre del negocio</label>
+    <input type="text" id="nombre" name="nombre" value="{{ datos.nombre }}"
+           maxlength="80" placeholder="Ej. Lavandería La Estrella" required>
+
+    <label for="abreviatura">Abreviatura para tus folios</label>
+    <input type="text" id="abreviatura" name="abreviatura" value="{{ datos.abreviatura }}"
+           maxlength="5" placeholder="LAV" style="text-transform: uppercase"
+           autocapitalize="characters">
+    <p class="ayuda">De 1 a 5 letras o números. Tus folios serán LAV-0001, LAV-0002…
+      Si la dejas vacía, la sacamos del nombre.</p>
+
+    <fieldset>
+      <legend>Giro</legend>
+      {% for clave, texto in GIROS.items() %}
+      <label>
+        <input type="radio" name="giro" value="{{ clave }}" {% if datos.giro == clave %}checked{% endif %}>
+        {{ texto }}
+      </label>
+      {% endfor %}
+    </fieldset>
+
+    <label for="telefono">Teléfono del negocio (opcional)</label>
+    <input type="tel" id="telefono" name="telefono" value="{{ datos.telefono }}"
+           inputmode="numeric" placeholder="10 dígitos, ej. 993 123 4567">
+
+    <button type="submit">Guardar y continuar</button>
+  </form>
+</article>
+{% endblock %}
