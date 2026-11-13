@@ -52,20 +52,30 @@ def preparar(ordenes: list[dict], nombre_negocio: str, hoy: date | None = None) 
     return ordenes
 
 
-def _por_fecha(orden: dict) -> str:
-    return orden.get("fecha_entrega") or "9999-12-31"
+def _por_fecha(orden: dict) -> tuple[str, str, int]:
+    """Prioriza por fecha de entrega más próxima y, en empate, por la que llegó primero."""
+    return (
+        orden.get("fecha_entrega") or "9999-12-31",
+        orden.get("creado_en") or "",
+        orden.get("id") or 0,
+    )
+
+
+def ordenar_por_prioridad(ordenes: list[dict]) -> list[dict]:
+    """Ordena dando prioridad a la fecha más exigente y a la orden con mayor antigüedad."""
+    return sorted(ordenes, key=_por_fecha)
 
 
 def secciones_panel(ordenes: list[dict]) -> list[tuple[str, list[dict]]]:
     """Agrupa por prioridad: primero lo urgente, luego lo listo para avisar."""
-    atencion = sorted([o for o in ordenes if o["alerta"] in ("atrasada", "hoy")], key=_por_fecha)
+    atencion = ordenar_por_prioridad([o for o in ordenes if o["alerta"] in ("atrasada", "hoy")])
     urgentes = {o["id"] for o in atencion}
     resto = [o for o in ordenes if o["id"] not in urgentes]
     secciones = [
         ("Requieren atención", atencion),
-        ("Listas para avisar o entregar", [o for o in resto if o["estado"] == "listo"]),
-        ("En proceso", sorted([o for o in resto if o["estado"] == "en_proceso"], key=_por_fecha)),
-        ("Recibidas", sorted([o for o in resto if o["estado"] == "recibido"], key=_por_fecha)),
+        ("Listas para avisar o entregar", ordenar_por_prioridad([o for o in resto if o["estado"] == "listo"])),
+        ("En proceso", ordenar_por_prioridad([o for o in resto if o["estado"] == "en_proceso"])),
+        ("Recibidas", ordenar_por_prioridad([o for o in resto if o["estado"] == "recibido"])),
     ]
     return [(titulo, lista) for titulo, lista in secciones if lista]
 

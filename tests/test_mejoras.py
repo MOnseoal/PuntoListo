@@ -244,3 +244,17 @@ def test_ajustes_tiene_selector_de_tema(con_negocio, monkeypatch):
     texto = con_negocio.get("/negocio/ajustes").get_data(as_text=True)
     for opcion in ("auto", "light", "dark"):
         assert f'data-tema-opcion="{opcion}"' in texto
+    for color in ("original", "verde", "azul"):
+        assert f'data-color-opcion="{color}"' in texto
+
+
+def test_lista_ordena_por_prioridad_y_llegada_y_tiene_vista_cuadricula(con_negocio, monkeypatch):
+    o1 = {**orden(1, "recibido", None), "creado_en": "2026-11-01T10:00:00+00:00"}
+    o2 = {**orden(2, "recibido", None), "creado_en": "2026-11-02T10:00:00+00:00"}
+    o3 = {**orden(3, "recibido", "2026-11-03"), "creado_en": "2026-11-02T12:00:00+00:00"}
+    monkeypatch.setattr("puntolisto.modelos.ordenes.listar", lambda *a, **k: [o2, o3, o1])
+    texto = con_negocio.get("/ordenes/").get_data(as_text=True)
+    # Primero la que tiene fecha próxima (LAV-0003), luego la que llegó primero (LAV-0001) antes que LAV-0002
+    assert texto.index("LAV-0003") < texto.index("LAV-0001") < texto.index("LAV-0002")
+    assert 'data-vista-opcion="lista"' in texto
+    assert 'data-vista-opcion="cuadricula"' in texto

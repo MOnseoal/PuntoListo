@@ -20,11 +20,21 @@
 </nav>
 
 {% if ordenes %}
-<p class="tenue" style="font-size:.85rem;margin:.25rem 0 .5rem">
-  {{ ordenes|length }} {{ "orden" if ordenes|length == 1 else "órdenes" }}
-  {% if filtro == "entregado" %}(las 50 más recientes){% endif %}
-</p>
-<div class="lista">
+<div class="barra-lista">
+  <p class="tenue" style="font-size:.85rem;margin:0">
+    {{ ordenes|length }} {{ "orden" if ordenes|length == 1 else "órdenes" }}
+    {% if filtro == "entregado" %}(las 50 más recientes){% else %}· por prioridad{% endif %}
+  </p>
+  <div class="selector-vista" role="group" aria-label="Vista de órdenes">
+    <button type="button" data-vista-opcion="lista" aria-pressed="true" title="Ver en lista">
+      <svg class="icono" aria-hidden="true"><use href="#i-lista"/></svg>Lista
+    </button>
+    <button type="button" data-vista-opcion="cuadricula" aria-pressed="false" title="Ver en cuadrícula">
+      <svg class="icono" aria-hidden="true"><use href="#i-cuadricula"/></svg>Cuadrícula
+    </button>
+  </div>
+</div>
+<div class="lista" id="contenedor-ordenes">
   {% for orden in ordenes %}{{ tarjeta_orden(orden, request.full_path) }}{% endfor %}
 </div>
 {% elif busqueda %}

@@ -4,10 +4,11 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-  <script>try{var t=localStorage.getItem("pl-tema");if(t==="light"||t==="dark")document.documentElement.setAttribute("data-theme",t)}catch(e){}</script>
+  <script>try{var t=localStorage.getItem("pl-tema"),c=localStorage.getItem("pl-color");if(t==="light"||t==="dark")document.documentElement.setAttribute("data-theme",t);if(c==="verde"||c==="azul")document.documentElement.setAttribute("data-color",c)}catch(e){}</script>
   <meta name="color-scheme" content="light dark">
   <meta name="theme-color" content="#f3f5f7" media="(prefers-color-scheme: light)">
   <meta name="theme-color" content="#0b1114" media="(prefers-color-scheme: dark)">
+  <meta name="description" content="Registra órdenes y avisa a tus clientes por WhatsApp.">
   <title>{% block titulo %}PuntoListo{% endblock %} · PuntoListo</title>
 
   <link rel="preconnect" href="https://fonts.googleapis.com">

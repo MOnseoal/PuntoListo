@@ -16,8 +16,6 @@ MENSAJES_ERROR = {
     "email_exists": "Ya existe una cuenta con ese correo. Inicia sesión.",
     "weak_password": "La contraseña es muy débil. Usa al menos 8 caracteres.",
     "email_address_invalid": "El correo no es válido.",
-    "over_request_rate_limit": "Demasiados intentos. Espera unos minutos.",
-    "over_email_send_rate_limit": "Demasiados intentos. Espera unos minutos.",
     "signup_disabled": "El registro de cuentas está desactivado.",
 }
 MENSAJE_GENERICO = "No se pudo completar. Intenta de nuevo."

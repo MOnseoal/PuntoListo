@@ -102,8 +102,9 @@ def lista():
                                limite=50 if filtro == "entregado" else 200)
     resultado = presentacion.preparar(resultado, g.comercio["nombre"])
     if filtro == "atencion":
-        resultado = sorted([o for o in resultado if o["alerta"] in ("atrasada", "hoy")],
-                           key=lambda o: o["fecha_entrega"])  # la más atrasada primero
+        resultado = [o for o in resultado if o["alerta"] in ("atrasada", "hoy")]
+    if filtro != "entregado":
+        resultado = presentacion.ordenar_por_prioridad(resultado)
 
     return render_template("ordenes/lista.html", ordenes=resultado, filtro=filtro,
                            filtros=FILTROS, busqueda=busqueda)

@@ -54,7 +54,7 @@ def listar(sb, comercio_id: int, estados: tuple[str, ...], busqueda: str = "",
             return []  # se buscó algo que no puede coincidir con nada
         consulta = consulta.or_(",".join(condiciones))
 
-    respuesta = consulta.order(orden_por, desc=True).limit(limite).execute()
+    respuesta = consulta.order(orden_por, desc=(orden_por == "actualizado_en")).limit(limite).execute()
     return respuesta.data or []
 
 

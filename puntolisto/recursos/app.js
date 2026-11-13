@@ -66,11 +66,11 @@
     filtrar();
   }
 
-  // 4. Tema: Automático (según el teléfono), Claro u Oscuro. Se guarda en este teléfono.
+  // 4. Tema (Auto/Claro/Oscuro) y Gama de color (Original/Verde claro/Azul).
+  var raiz = document.documentElement;
   var botonesTema = document.querySelectorAll("[data-tema-opcion]");
   if (botonesTema.length) {
-    var raiz = document.documentElement;
-    var marcar = function () {
+    var marcarTema = function () {
       var actual = raiz.getAttribute("data-theme") || "auto";
       botonesTema.forEach(function (b) {
         b.setAttribute("aria-pressed", b.dataset.temaOpcion === actual ? "true" : "false");
@@ -85,13 +85,62 @@
         } catch (e) { /* almacenamiento no disponible: el cambio dura solo esta visita */ }
         if (opcion === "auto") { raiz.removeAttribute("data-theme"); }
         else { raiz.setAttribute("data-theme", opcion); }
-        marcar();
+        marcarTema();
       });
     });
-    marcar();
+    marcarTema();
   }
 
-  // 5. Registrar el service worker para que se pueda instalar como app
+  var botonesColor = document.querySelectorAll("[data-color-opcion]");
+  if (botonesColor.length) {
+    var marcarColor = function () {
+      var actual = raiz.getAttribute("data-color") || "original";
+      botonesColor.forEach(function (b) {
+        b.setAttribute("aria-pressed", b.dataset.colorOpcion === actual ? "true" : "false");
+      });
+    };
+    botonesColor.forEach(function (boton) {
+      boton.addEventListener("click", function () {
+        var opcion = boton.dataset.colorOpcion;
+        try {
+          if (opcion === "original") { localStorage.removeItem("pl-color"); }
+          else { localStorage.setItem("pl-color", opcion); }
+        } catch (e) {}
+        if (opcion === "original") { raiz.removeAttribute("data-color"); }
+        else { raiz.setAttribute("data-color", opcion); }
+        marcarColor();
+      });
+    });
+    marcarColor();
+  }
+
+  // 5. Vista de órdenes: Lista o Cuadrícula (se recuerda en el dispositivo).
+  var contenedorOrdenes = document.getElementById("contenedor-ordenes");
+  var botonesVista = document.querySelectorAll("[data-vista-opcion]");
+  if (contenedorOrdenes && botonesVista.length) {
+    var aplicarVista = function (vista) {
+      var esCuadricula = vista === "cuadricula";
+      contenedorOrdenes.classList.toggle("cuadricula", esCuadricula);
+      botonesVista.forEach(function (b) {
+        b.setAttribute("aria-pressed", b.dataset.vistaOpcion === (esCuadricula ? "cuadricula" : "lista") ? "true" : "false");
+      });
+    };
+    try {
+      if (localStorage.getItem("pl-vista") === "cuadricula") aplicarVista("cuadricula");
+    } catch (e) {}
+    botonesVista.forEach(function (boton) {
+      boton.addEventListener("click", function () {
+        var opcion = boton.dataset.vistaOpcion;
+        try {
+          if (opcion === "cuadricula") { localStorage.setItem("pl-vista", "cuadricula"); }
+          else { localStorage.removeItem("pl-vista"); }
+        } catch (e) {}
+        aplicarVista(opcion);
+      });
+    });
+  }
+
+  // 6. Registrar el service worker para que se pueda instalar como app
   if ("serviceWorker" in navigator) {
     window.addEventListener("load", function () {
       navigator.serviceWorker.register("/sw.js").catch(function () {});

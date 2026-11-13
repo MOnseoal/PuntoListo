@@ -84,6 +84,64 @@
   --pl-flujo-recibido: #64748b; --pl-flujo-proceso: #d39b22; --pl-flujo-listo: #34d399;
 }
 
+/* ---------- Gamas de color adicionales (Verde claro y Azul) ---------- */
+:root[data-color=verde]:not([data-theme=dark]), [data-theme=light][data-color=verde] {
+  --pl-acento: #16a34a;
+  --pl-acento-hover: #15803d;
+  --pl-sobre-acento: #ffffff;
+  --pl-acento-suave: #dcfce7;
+  --pl-hero: #14532d;
+  --pl-hero-texto: #ffffff;
+  --pl-hero-sub: #bbf7d0;
+}
+:root[data-color=azul]:not([data-theme=dark]), [data-theme=light][data-color=azul] {
+  --pl-acento: #2563eb;
+  --pl-acento-hover: #1d4ed8;
+  --pl-sobre-acento: #ffffff;
+  --pl-acento-suave: #dbeafe;
+  --pl-hero: #1e3a8a;
+  --pl-hero-texto: #ffffff;
+  --pl-hero-sub: #bfdbfe;
+}
+@media (prefers-color-scheme: dark) {
+  :root[data-color=verde]:not([data-theme]) {
+    --pl-acento: #4ade80;
+    --pl-acento-hover: #86efac;
+    --pl-sobre-acento: #052e16;
+    --pl-acento-suave: #143321;
+    --pl-hero: #143822;
+    --pl-hero-texto: #ecfdf5;
+    --pl-hero-sub: #86efac;
+  }
+  :root[data-color=azul]:not([data-theme]) {
+    --pl-acento: #60a5fa;
+    --pl-acento-hover: #93c5fd;
+    --pl-sobre-acento: #0b1938;
+    --pl-acento-suave: #172554;
+    --pl-hero: #172b5c;
+    --pl-hero-texto: #eff6ff;
+    --pl-hero-sub: #93c5fd;
+  }
+}
+[data-theme=dark][data-color=verde] {
+  --pl-acento: #4ade80;
+  --pl-acento-hover: #86efac;
+  --pl-sobre-acento: #052e16;
+  --pl-acento-suave: #143321;
+  --pl-hero: #143822;
+  --pl-hero-texto: #ecfdf5;
+  --pl-hero-sub: #86efac;
+}
+[data-theme=dark][data-color=azul] {
+  --pl-acento: #60a5fa;
+  --pl-acento-hover: #93c5fd;
+  --pl-sobre-acento: #0b1938;
+  --pl-acento-suave: #172554;
+  --pl-hero: #172b5c;
+  --pl-hero-texto: #eff6ff;
+  --pl-hero-sub: #93c5fd;
+}
+
 /* ---------- Pico usa los colores de PuntoListo ----------
    Se declara en <body> (no en :root) porque Pico define sus variables con
    selectores más específicos en :root; todo lo visible hereda de body. */
@@ -198,7 +256,26 @@ button, [role=button], input, select, textarea { border-radius: .75rem; }
 .seccion a { font-size: .85rem; font-weight: 600; text-decoration: none; }
 
 /* ---------- Tarjetas de orden (estilo cita médica) ---------- */
+.barra-lista { display: flex; justify-content: space-between; align-items: center; gap: .5rem;
+               margin: .2rem 0 .6rem; flex-wrap: wrap; }
+.selector-vista { display: inline-flex; gap: .2rem; padding: .2rem; background: var(--pl-tarjeta);
+                  border: 1px solid var(--pl-borde); border-radius: .75rem; }
+.selector-vista button { margin: 0; padding: .28rem .55rem; font-size: .76rem; font-weight: 600; border: 0;
+                         background: transparent; color: var(--pl-tenue); border-radius: .55rem;
+                         display: inline-flex; align-items: center; gap: .3rem; width: auto; }
+.selector-vista button .icono { width: .95rem; height: .95rem; }
+.selector-vista button[aria-pressed="true"] { background: var(--pl-acento); color: var(--pl-sobre-acento); }
 .lista { display: flex; flex-direction: column; gap: .55rem; margin-bottom: 1rem; }
+.lista.cuadricula { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .65rem; }
+.lista.cuadricula .tarjeta { flex-direction: column; align-items: stretch; justify-content: space-between;
+                             gap: .55rem; padding: .8rem; }
+.lista.cuadricula .tarjeta .fecha { width: 100%; height: auto; flex-direction: row; gap: .35rem;
+                                    padding: .3rem .55rem; border-radius: .6rem; justify-content: center; }
+.lista.cuadricula .tarjeta .fecha b { font-size: .95rem; }
+.lista.cuadricula .tarjeta .info { flex: 1 1 auto; }
+.lista.cuadricula .tarjeta .acciones { margin-left: 0; width: 100%; flex-wrap: wrap; }
+.lista.cuadricula .tarjeta .acciones form,
+.lista.cuadricula .tarjeta .acciones .accion { width: 100%; justify-content: center; }
 .tarjeta { display: flex; flex-wrap: wrap; align-items: center; gap: .55rem .8rem; padding: .75rem .85rem;
            background: var(--pl-tarjeta); border: 1px solid var(--pl-borde); border-radius: 1rem;
            box-shadow: var(--pl-sombra); }
@@ -283,12 +360,17 @@ form[role=search] input { background: var(--pl-tarjeta); }
 .menu-lista { background: var(--pl-tarjeta); border: 1px solid var(--pl-borde); border-radius: 1rem; padding: 0 1rem;
               box-shadow: var(--pl-sombra); margin-bottom: 1rem; }
 
-/* ---------- Selector de tema (segmentado) ---------- */
+/* ---------- Selector de tema y color (segmentado) ---------- */
 .segmentado { display: grid; grid-template-columns: repeat(3, 1fr); gap: .3rem; padding: .25rem;
               background: var(--pl-fondo); border: 1px solid var(--pl-borde); border-radius: .9rem; }
 .segmentado button { margin: 0; padding: .45rem .3rem; font-size: .84rem; font-weight: 600; border: 0;
-                     background: transparent; color: var(--pl-tenue); border-radius: .7rem; }
+                     background: transparent; color: var(--pl-tenue); border-radius: .7rem;
+                     display: inline-flex; align-items: center; justify-content: center; gap: .35rem; }
 .segmentado button[aria-pressed="true"] { background: var(--pl-tarjeta); color: var(--pl-texto); box-shadow: var(--pl-sombra); }
+.muestra-color { width: .75rem; height: .75rem; border-radius: 50%; display: inline-block; flex: none; }
+.muestra-color.m-original { background: #0f766e; }
+.muestra-color.m-verde    { background: #16a34a; }
+.muestra-color.m-azul     { background: #2563eb; }
 
 /* ---------- Nueva orden ---------- */
 .servicio-orden { display: grid; grid-template-columns: 1fr auto; gap: .5rem; align-items: center;
