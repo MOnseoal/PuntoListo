@@ -1,9 +1,9 @@
 {% extends "base.html" %}
 {% from "_tarjetas.html" import tarjeta_orden %}
-{% block titulo %}Órdenes{% endblock %}
+{% block titulo %}{{ voc('ordenes', True) }}{% endblock %}
 
 {% block contenido %}
-<h1>Órdenes</h1>
+<h1>{{ voc('ordenes', True) }}</h1>
 
 <form method="get" role="search">
   <input type="search" name="q" value="{{ busqueda }}" placeholder="Folio o cliente"
@@ -22,7 +22,7 @@
 {% if ordenes %}
 <div class="barra-lista">
   <p class="tenue" style="font-size:.85rem;margin:0">
-    {{ ordenes|length }} {{ "orden" if ordenes|length == 1 else "órdenes" }}
+    {{ ordenes|length }} {{ voc('orden') if ordenes|length == 1 else voc('ordenes') }}
     {% if filtro == "entregado" %}(las 50 más recientes){% else %}· por prioridad{% endif %}
   </p>
   <div class="selector-vista" role="group" aria-label="Vista de órdenes">
@@ -52,5 +52,5 @@
 </article>
 {% endif %}
 
-<a href="{{ url_for('ordenes.nueva') }}" role="button" class="boton-ancho">+ Nueva orden</a>
+<a href="{{ url_for('ordenes.nueva') }}" role="button" class="boton-ancho">+ Nueva {{ voc('orden') }}</a>
 {% endblock %}

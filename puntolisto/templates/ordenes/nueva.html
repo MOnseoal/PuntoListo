@@ -1,9 +1,16 @@
 {% extends "base.html" %}
-{% block titulo %}Nueva orden{% endblock %}
+{% block titulo %}Nueva {{ voc('orden') }}{% endblock %}
 
 {% block contenido %}
-<h1>Nueva orden</h1>
+<h1>Nueva {{ voc('orden') }}</h1>
 <p class="subtitulo">El folio se asigna solo al guardar.</p>
+
+{% if aviso_limite and request.method == "GET" %}
+<div class="mensaje info mensaje-limite" role="status">
+  <span>{{ aviso_limite }}</span>
+  <a href="{{ url_for('planes.inicio') }}" role="button" class="outline boton-chico boton-tactil">Ver planes</a>
+</div>
+{% endif %}
 
 {% if not catalogo %}
 <article>
@@ -62,7 +69,15 @@
 
   {# ---------- 3. Entrega ---------- #}
   <article>
-    <header><strong>3. Entrega</strong> <small class="tenue">(opcional)</small></header>
+    <header><strong>3. Detalles y entrega</strong> <small class="tenue">(opcional)</small></header>
+    <div class="contador-fila">
+      <label for="descripcion">¿Qué dejó el cliente?</label>
+      <small id="contador-descripcion" class="tenue">{{ (valores.descripcion or '')|length }} / 200</small>
+    </div>
+    <input type="text" id="descripcion" name="descripcion"
+           value="{{ valores.descripcion or '' }}" maxlength="200"
+           placeholder="{{ plantilla_giro_actual().placeholder_descripcion }}">
+
     <label for="fecha_entrega">Fecha prometida de entrega</label>
     <input type="date" id="fecha_entrega" name="fecha_entrega" value="{{ valores.fecha_entrega }}">
 
@@ -71,7 +86,7 @@
               placeholder="Sin suavizante, mancha en la manga…">{{ valores.notas }}</textarea>
   </article>
 
-  <button type="submit">Registrar orden</button>
+  <button type="submit">Registrar {{ voc('orden') }}</button>
 </form>
 {% endif %}
 {% endblock %}

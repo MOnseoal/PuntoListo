@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+{% block titulo %}Interés en {{ plan.nombre }}{% endblock %}
+
+{% block contenido %}
+<article class="confirmacion-plan">
+  <div class="icono-confirmacion" aria-hidden="true">
+    <svg class="icono"><use href="#i-check"/></svg>
+  </div>
+  <h1>Gracias por tu interés en {{ plan.nombre }}.</h1>
+  <p style="font-size:1.02rem;margin:.6rem 0 1.25rem">
+    Gracias por tu interés en {{ plan.nombre }}. Esta es una demostración y no se hizo ningún cobro.
+    Cuando el plan esté disponible te avisaremos.
+  </p>
+  <a href="{{ url_for('panel.inicio') }}" role="button" class="boton-ancho boton-tactil">Volver al panel</a>
+  <a href="{{ url_for('planes.inicio') }}" role="button" class="secondary outline boton-ancho boton-tactil" style="margin-bottom:0">Ver otros planes</a>
+</article>
+{% endblock %}

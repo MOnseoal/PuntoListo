@@ -5,6 +5,7 @@ las listas para avisar, las que están en proceso y las recién recibidas.
 """
 from flask import Blueprint, current_app, g, render_template
 
+from .. import planes
 from ..modelos import ordenes
 from ..ordenes import presentacion
 from ..seguridad import login_requerido, negocio_requerido
@@ -16,10 +17,14 @@ bp = Blueprint("panel", __name__)
 @login_requerido
 @negocio_requerido
 def inicio():
-    activas = presentacion.preparar(ordenes.listar_activas(g.sb, g.comercio["id"]),
-                                    g.comercio["nombre"])
-    entregadas = ordenes.listar_entregadas(g.sb, g.comercio["id"], limite=200)
+    cid = g.comercio["id"]
+    activas = presentacion.preparar(ordenes.listar_activas(g.sb, cid),
+                                    g.comercio["nombre"], giro=g.comercio.get("giro"))
+    entregadas = ordenes.listar_entregadas(g.sb, cid, limite=200)
     conteo = presentacion.contar_por_estado(activas)
+    medidor_ordenes = planes.construir_medidor(
+        "ordenes_mes", ordenes.contar_mes_actual(g.sb, cid)
+    )
     return render_template(
         "panel/inicio.html",
         comercio=g.comercio,
@@ -29,6 +34,7 @@ def inicio():
         urgentes=sum(1 for o in activas if o["alerta"] in ("atrasada", "hoy")),
         semana=presentacion.semana_entregas(entregadas),
         total=len(activas),
+        medidor_ordenes=medidor_ordenes,
     )
 
 

@@ -8,6 +8,13 @@
     <p>El teléfono se usa para avisarle por WhatsApp cuando su orden esté lista.</p>
   </header>
 
+  {% if aviso_limite and request.method == "GET" %}
+  <div class="mensaje info mensaje-limite" role="status">
+    <span>{{ aviso_limite }}</span>
+    <a href="{{ url_for('planes.inicio') }}" role="button" class="outline boton-chico boton-tactil">Ver planes</a>
+  </div>
+  {% endif %}
+
   <form method="post" novalidate>
     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
 

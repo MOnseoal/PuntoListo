@@ -4,12 +4,16 @@ ACT-12: pantalla "Configura tu negocio" (nombre, abreviatura, giro).
 ACT-14: catálogo de servicios (agregar, editar, activar/desactivar).
 Ajustes: editar nombre y teléfono del negocio, accesos y cerrar sesión.
 """
+import inspect
+
 from flask import Blueprint, abort, flash, g, redirect, render_template, request, session, url_for
 from postgrest.exceptions import APIError
 
+from .. import planes
 from .. import validaciones as v
 from ..etiquetas import GIROS, TIPOS_COBRO, telefono_legible
-from ..modelos import comercios, servicios
+from ..giros import giro_valido, lista_giros
+from ..modelos import clientes, comercios, ordenes, servicios
 from ..seguridad import login_requerido, negocio_requerido
 
 bp = Blueprint("negocio", __name__, url_prefix="/negocio")
@@ -25,6 +29,7 @@ def configurar():
         "nombre": request.form.get("nombre", "").strip(),
         "abreviatura": request.form.get("abreviatura", "").strip(),
         "giro": request.form.get("giro", ""),
+        "giro_otro": " ".join(request.form.get("giro_otro", "").split()),
         "telefono": request.form.get("telefono", "").strip(),
     }
 
@@ -33,20 +38,31 @@ def configurar():
             datos["abreviatura"] or v.sugerir_abreviatura(datos["nombre"])
         )
         telefono = v.normalizar_telefono(datos["telefono"]) if datos["telefono"] else None
+        giro_otro = datos["giro_otro"] or None if datos["giro"] == "otro" else None
 
         if not v.nombre_valido(datos["nombre"]):
             flash("El nombre del negocio debe tener entre 2 y 80 caracteres.", "error")
         elif abreviatura is None:
             flash("La abreviatura debe tener de 1 a 5 letras o números, sin espacios.", "error")
-        elif datos["giro"] not in GIROS:
+        elif not giro_valido(datos["giro"]):
             flash("Elige el giro de tu negocio.", "error")
+        elif giro_otro and len(giro_otro) > 40:
+            flash("El giro personalizado puede tener máximo 40 caracteres.", "error")
         elif datos["telefono"] and telefono is None:
             flash("El teléfono debe tener 10 dígitos.", "error")
         else:
             try:
-                cargados = comercios.crear(
-                    g.sb, g.usuario_id, datos["nombre"], abreviatura, datos["giro"], telefono
-                )
+                params = inspect.signature(comercios.crear).parameters
+                if len(params) >= 7:
+                    cargados = comercios.crear(
+                        g.sb, g.usuario_id, datos["nombre"], abreviatura,
+                        datos["giro"], telefono, giro_otro
+                    )
+                else:
+                    cargados = comercios.crear(
+                        g.sb, g.usuario_id, datos["nombre"], abreviatura,
+                        datos["giro"], telefono
+                    )
             except APIError as error:
                 if error.code == "23505":  # ya tenía negocio (doble clic o dos pestañas)
                     return redirect(url_for("panel.inicio"))
@@ -59,7 +75,7 @@ def configurar():
                 )
                 return redirect(url_for("panel.inicio"))
 
-    return render_template("negocio/configurar.html", datos=datos)
+    return render_template("negocio/configurar.html", datos=datos, giros=lista_giros())
 
 
 # ======================================================================
@@ -97,20 +113,28 @@ def catalogo():
 @negocio_requerido
 def servicio_nuevo():
     datos = {"nombre": "", "tipo_cobro": "", "precio": ""}
+    cid = g.comercio["id"]
+    en_limite = planes.limite_alcanzado(
+        "servicios", servicios.contar_activos(g.sb, cid), session.get("email")
+    )
+    aviso_limite = planes.mensaje_limite("servicios") if en_limite else None
     if request.method == "POST":
         datos, error = _validar_servicio(request.form)
-        if error:
+        if en_limite:
+            flash(planes.mensaje_limite("servicios"), "limite")
+        elif error:
             flash(error, "error")
         else:
             try:
-                servicios.crear(g.sb, g.comercio["id"], **datos)
+                servicios.crear(g.sb, cid, **datos)
             except APIError as e:
                 flash(MENSAJE_SERVICIO_DUPLICADO if e.code == "23505"
                       else "No se pudo guardar. Intenta de nuevo.", "error")
             else:
                 flash(f"Servicio {datos['nombre']} agregado.", "exito")
                 return redirect(url_for("negocio.catalogo"))
-    return render_template("negocio/servicio_form.html", datos=datos, editando=False)
+    return render_template("negocio/servicio_form.html", datos=datos, editando=False,
+                           aviso_limite=aviso_limite)
 
 
 @bp.route("/catalogo/<int:servicio_id>/editar", methods=["GET", "POST"])
@@ -144,7 +168,13 @@ def servicio_editar(servicio_id: int):
 @negocio_requerido
 def servicio_activo(servicio_id: int):
     activar = request.form.get("activo") == "1"
-    servicio = servicios.cambiar_activo(g.sb, g.comercio["id"], servicio_id, activar)
+    cid = g.comercio["id"]
+    if activar and planes.limite_alcanzado(
+        "servicios", servicios.contar_activos(g.sb, cid), session.get("email")
+    ):
+        flash(planes.mensaje_limite("servicios"), "limite")
+        return redirect(url_for("negocio.catalogo"))
+    servicio = servicios.cambiar_activo(g.sb, cid, servicio_id, activar)
     if servicio is None:
         abort(404)
     if activar:
@@ -183,6 +213,15 @@ def ajustes():
                 flash("Datos del negocio guardados.", "exito")
                 return redirect(url_for("negocio.ajustes"))
 
+    cid = g.comercio["id"]
+    activos_lista = servicios.listar(g.sb, cid, solo_activos=True)
+    n_servicios = servicios.contar_activos(g.sb, cid) or len(activos_lista)
+    uso_plan = planes.resumen_uso(
+        ordenes_mes=ordenes.contar_mes_actual(g.sb, cid),
+        clientes_totales=clientes.contar(g.sb, cid),
+        servicios_activos=n_servicios,
+    )
     return render_template("negocio/ajustes.html", datos=datos, comercio=g.comercio,
                            correo=session.get("email", ""),
-                           total_servicios=len(servicios.listar(g.sb, g.comercio["id"], solo_activos=True)))
+                           total_servicios=len(activos_lista),
+                           uso_plan=uso_plan)

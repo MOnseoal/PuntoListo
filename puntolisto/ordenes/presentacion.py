@@ -41,13 +41,14 @@ def resumen_servicios(orden: dict) -> str:
     return texto
 
 
-def preparar(ordenes: list[dict], nombre_negocio: str, hoy: date | None = None) -> list[dict]:
+def preparar(ordenes: list[dict], nombre_negocio: str, hoy: date | None = None,
+             giro: str | None = None) -> list[dict]:
     hoy = hoy or hoy_mexico()
     for orden in ordenes:
         orden["alerta"] = calcular_alerta(orden, hoy)
         orden["resumen"] = resumen_servicios(orden)
         orden["siguiente"] = siguiente_estado(orden["estado"])
-        orden["enlace_wa"] = (avisos.enlace_orden_lista(orden, nombre_negocio)
+        orden["enlace_wa"] = (avisos.enlace_orden_lista(orden, nombre_negocio, giro=giro)
                               if orden["estado"] == "listo" else None)
     return ordenes
 

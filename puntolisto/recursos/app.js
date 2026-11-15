@@ -140,7 +140,33 @@
     });
   }
 
-  // 6. Registrar el service worker para que se pueda instalar como app
+  // 6. Mostrar/ocultar "¿A qué se dedica tu negocio?" cuando se elige el giro "Otro"
+  //    y contador de caracteres para la descripción de la orden.
+  var campoGiroOtro = document.getElementById("campo-giro-otro");
+  var radiosGiro = document.querySelectorAll("input[name='giro']");
+  if (campoGiroOtro && radiosGiro.length) {
+    var actualizarGiroOtro = function () {
+      var elegido = document.querySelector("input[name='giro']:checked");
+      var esOtro = elegido && elegido.value === "otro";
+      campoGiroOtro.classList.toggle("oculto", !esOtro);
+    };
+    radiosGiro.forEach(function (radio) {
+      radio.addEventListener("change", actualizarGiroOtro);
+    });
+    actualizarGiroOtro();
+  }
+
+  var campoDescripcion = document.getElementById("descripcion");
+  var contadorDescripcion = document.getElementById("contador-descripcion");
+  if (campoDescripcion && contadorDescripcion) {
+    var actualizarContadorDescripcion = function () {
+      contadorDescripcion.textContent = campoDescripcion.value.length + " / 200";
+    };
+    campoDescripcion.addEventListener("input", actualizarContadorDescripcion);
+    actualizarContadorDescripcion();
+  }
+
+  // 7. Registrar el service worker para que se pueda instalar como app
   if ("serviceWorker" in navigator) {
     window.addEventListener("load", function () {
       navigator.serviceWorker.register("/sw.js").catch(function () {});

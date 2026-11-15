@@ -1,0 +1,106 @@
+{% extends "base.html" %}
+{% block titulo %}Planes{% endblock %}
+
+{% block contenido %}
+<h1>Elige cómo quieres crecer</h1>
+<p class="subtitulo">Compara las herramientas de cada plan para tu negocio.</p>
+
+<div class="mensaje info aviso-simulacion" role="status">
+  <svg class="icono" aria-hidden="true"><use href="#i-candado"/></svg>
+  <span><strong>Vista previa: aún no se realiza ningún cobro.</strong> Todas las cuentas están hoy en Punto de Partida.</span>
+</div>
+
+<div class="rejilla-planes">
+  {% for plan in planes %}
+  <article class="tarjeta-plan {{ 'destacado' if plan.destacado else '' }}">
+    <div class="cabecera-plan">
+      <div class="etiquetas-plan">
+        {% if plan.clave == plan_actual %}
+        <span class="etiqueta estado-recibido">Tu plan actual</span>
+        {% endif %}
+        {% if plan.destacado %}
+        <span class="etiqueta insignia-eleccion">Más elegido</span>
+        {% endif %}
+      </div>
+      <h2>{{ plan.nombre }}</h2>
+      <p class="tenue" style="margin:0 0 .5rem">{{ plan.frase }}</p>
+
+      {% if plan.precio == 0 %}
+      <p class="precio-plan"><strong>$0</strong> <small>/ mes · Gratis</small></p>
+      {% else %}
+      <p class="precio-plan">
+        <strong>${{ plan.precio }}</strong> <small>MXN / mes</small>
+      </p>
+      <p class="promo-mes">
+        <span class="etiqueta estado-listo">Primer mes ${{ plan.precio_primer_mes }} (-{{ descuento_pct }} % para nuevos usuarios)</span>
+        <small class="tenue">Precio normal <s>${{ plan.precio }}</s></small>
+      </p>
+      {% endif %}
+
+      <p class="ideal-plan"><strong>Ideal para:</strong> {{ plan.ideal_para }}</p>
+    </div>
+
+    <ul class="lista-funciones">
+      {% for f in plan.funciones %}
+      <li class="{{ 'incluida' if f.incluida else 'no-incluida' }}">
+        {% if f.incluida %}
+        <svg class="icono icono-si" aria-hidden="true"><use href="#i-check"/></svg>
+        <span>{{ f.texto }}</span>
+        {% else %}
+        <svg class="icono icono-no" aria-hidden="true"><use href="#i-no"/></svg>
+        <span><small class="tenue">No incluye:</small> {{ f.texto }}</span>
+        {% endif %}
+      </li>
+      {% endfor %}
+    </ul>
+
+    <div class="pie-plan">
+      {% if plan.clave == plan_actual %}
+      <button type="button" class="secondary outline boton-ancho boton-tactil" disabled>Tu plan actual</button>
+      {% else %}
+      <form method="post" action="{{ url_for('planes.solicitar') }}">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <input type="hidden" name="plan" value="{{ plan.clave }}">
+        <button type="submit" class="{{ '' if plan.destacado else 'outline ' }}boton-ancho boton-tactil">
+          Elegir {{ plan.nombre }}
+        </button>
+      </form>
+      {% endif %}
+    </div>
+  </article>
+  {% endfor %}
+</div>
+
+<h2 class="seccion" style="margin-top:1.75rem">Comparación completa</h2>
+<div class="contenedor-tabla-planes">
+  <table class="tabla-planes">
+    <thead>
+      <tr>
+        <th scope="col">Función</th>
+        <th scope="col">Punto de Partida<br><small class="tenue">$0</small></th>
+        <th scope="col">Punto Fuerte<br><small class="tenue">$75 / mes</small></th>
+        <th scope="col">Punto Cumbre<br><small class="tenue">$150 / mes</small></th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for fila in matriz %}
+      <tr>
+        <th scope="row">{{ fila.funcion }}</th>
+        {% for clave in ["partida", "fuerte", "cumbre"] %}
+        {% set valor = fila[clave] %}
+        <td>
+          {% if valor is sameas true %}
+          <span class="celda-estado si"><svg class="icono" aria-hidden="true"><use href="#i-check"/></svg> Sí</span>
+          {% elif valor is sameas false %}
+          <span class="celda-estado no"><svg class="icono" aria-hidden="true"><use href="#i-no"/></svg> No</span>
+          {% else %}
+          <strong>{{ valor }}</strong>
+          {% endif %}
+        </td>
+        {% endfor %}
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

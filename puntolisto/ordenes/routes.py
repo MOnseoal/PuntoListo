@@ -8,10 +8,10 @@ acciones rápidas desde las tarjetas que regresan a la página de origen.
 """
 from datetime import date
 
-from flask import Blueprint, abort, flash, g, redirect, render_template, request, url_for
+from flask import Blueprint, abort, flash, g, redirect, render_template, request, session, url_for
 from postgrest.exceptions import APIError
 
-from .. import avisos
+from .. import avisos, planes
 from .. import validaciones as v
 from ..etiquetas import ESTADOS, hoy_mexico
 from ..modelos import clientes, ordenes, servicios
@@ -44,6 +44,7 @@ def _leer_formulario(formulario, catalogo: list[dict], lista_clientes: list[dict
     valores = {
         "cliente_id": formulario.get("cliente_id", ""),
         "fecha_entrega": formulario.get("fecha_entrega", ""),
+        "descripcion": formulario.get("descripcion", "").strip(),
         "notas": formulario.get("notas", "").strip(),
         "cantidades": {str(s["id"]): formulario.get(f"cantidad_{s['id']}", "").strip()
                        for s in catalogo},
@@ -75,11 +76,16 @@ def _leer_formulario(formulario, catalogo: list[dict], lista_clientes: list[dict
         except ValueError:
             return None, valores, "La fecha de entrega no es válida."
 
+    if len(valores["descripcion"]) > 200:
+        return None, valores, "La descripción puede tener máximo 200 caracteres."
+
     if len(valores["notas"]) > 500:
         return None, valores, "Las notas pueden tener máximo 500 caracteres."
 
     datos = {"cliente_id": int(valores["cliente_id"]), "servicios": elegidos,
              "fecha_entrega": fecha, "notas": valores["notas"] or None}
+    if valores["descripcion"]:
+        datos["descripcion"] = valores["descripcion"]
     return datos, valores, None
 
 
@@ -100,7 +106,7 @@ def lista():
     orden_por = "actualizado_en" if filtro == "entregado" else "creado_en"
     resultado = ordenes.listar(g.sb, cid, estados, busqueda, cliente_ids, orden_por=orden_por,
                                limite=50 if filtro == "entregado" else 200)
-    resultado = presentacion.preparar(resultado, g.comercio["nombre"])
+    resultado = presentacion.preparar(resultado, g.comercio["nombre"], giro=g.comercio.get("giro"))
     if filtro == "atencion":
         resultado = [o for o in resultado if o["alerta"] in ("atrasada", "hoy")]
     if filtro != "entregado":
@@ -117,13 +123,19 @@ def nueva():
     cid = g.comercio["id"]
     catalogo = servicios.listar(g.sb, cid, solo_activos=True)
     lista_clientes = clientes.listar(g.sb, cid, limite=1000)
+    en_limite = planes.limite_alcanzado(
+        "ordenes_mes", ordenes.contar_mes_actual(g.sb, cid), session.get("email")
+    )
+    aviso_limite = planes.mensaje_limite("ordenes_mes") if en_limite else None
 
     valores = {"cliente_id": request.args.get("cliente_id", ""), "fecha_entrega": "",
-               "notas": "", "cantidades": {}}
+               "descripcion": "", "notas": "", "cantidades": {}}
 
     if request.method == "POST":
         datos, valores, error = _leer_formulario(request.form, catalogo, lista_clientes)
-        if error:
+        if en_limite:
+            flash(planes.mensaje_limite("ordenes_mes"), "limite")
+        elif error:
             flash(error, "error")
         else:
             try:
@@ -135,7 +147,7 @@ def nueva():
                 return redirect(url_for("ordenes.detalle", orden_id=orden["id"]))
 
     return render_template("ordenes/nueva.html", catalogo=catalogo, clientes=lista_clientes,
-                           valores=valores)
+                           valores=valores, aviso_limite=aviso_limite)
 
 
 @bp.route("/<int:orden_id>")
@@ -148,7 +160,7 @@ def detalle(orden_id: int):
     alerta = presentacion.calcular_alerta(orden, hoy_mexico())
     enlace_wa = None
     if orden["estado"] == "listo":
-        enlace_wa = avisos.enlace_orden_lista(orden, g.comercio["nombre"])
+        enlace_wa = avisos.enlace_orden_lista(orden, g.comercio["nombre"], giro=g.comercio.get("giro"))
     return render_template(
         "ordenes/detalle.html", orden=orden, enlace_wa=enlace_wa, alerta=alerta,
         siguiente=ordenes.siguiente_estado(orden["estado"]),

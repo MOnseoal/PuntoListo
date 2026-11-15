@@ -412,3 +412,97 @@ nav.inferior a.central svg { width: 1.6rem; height: 1.6rem; }
 .acceso-hero img { width: 4rem; height: 4rem; border-radius: 1.1rem; margin-bottom: .75rem; box-shadow: var(--pl-sombra); }
 .acceso-hero h1 { margin-bottom: .25rem; }
 .acceso-hero p { color: var(--pl-tenue); margin: 0; }
+
+/* ---------- Planes de suscripción y vistas previas (ACT-24) ---------- */
+.boton-tactil, .fila-tactil { min-height: 3rem; }
+.aviso-simulacion { display: flex; align-items: center; gap: .6rem; }
+.rejilla-planes { display: grid; grid-template-columns: 1fr; gap: .9rem; margin-bottom: 1.25rem; }
+@media (min-width: 52rem) {
+  main.container:has(.rejilla-planes) { max-width: 62rem; }
+  .rejilla-planes { grid-template-columns: repeat(3, minmax(0, 1fr)); align-items: stretch; }
+}
+.tarjeta-plan { display: flex; flex-direction: column; justify-content: space-between;
+                margin: 0; padding: 1.15rem 1.1rem; position: relative; }
+.tarjeta-plan.destacado { border: 2px solid var(--pl-acento); }
+.etiquetas-plan { display: flex; gap: .4rem; flex-wrap: wrap; margin-bottom: .45rem; }
+.insignia-eleccion, .insignia-cumbre { background: var(--pl-acento-suave); color: var(--pl-acento); }
+.tarjeta-plan h2 { font-size: 1.25rem; margin: 0 0 .15rem; }
+.precio-plan { font-size: 1.85rem; margin: .35rem 0; line-height: 1.15; color: var(--pl-texto); }
+.precio-plan small { font-size: .88rem; font-weight: 500; color: var(--pl-tenue); }
+.promo-mes { display: flex; flex-direction: column; align-items: flex-start; gap: .25rem; margin: .25rem 0 .6rem; }
+.ideal-plan { font-size: .86rem; color: var(--pl-tenue); margin: .4rem 0 .75rem; }
+.lista-funciones { list-style: none; padding: 0; margin: 0 0 1rem; flex: 1; }
+.lista-funciones li { display: flex; align-items: flex-start; gap: .5rem; padding: .32rem 0;
+                      font-size: .88rem; list-style: none; margin: 0; }
+.lista-funciones .icono-si { color: var(--pl-ok); margin-top: .12rem; }
+.lista-funciones .icono-no { color: var(--pl-tenue); margin-top: .12rem; }
+.lista-funciones .no-incluida { color: var(--pl-tenue); }
+.pie-plan form, .pie-plan button { margin: 0; }
+
+.contenedor-tabla-planes { overflow-x: auto; background: var(--pl-tarjeta); border: 1px solid var(--pl-borde);
+                           border-radius: 1rem; box-shadow: var(--pl-sombra); margin-bottom: 1.25rem; }
+.tabla-planes { margin: 0; font-size: .86rem; width: 100%; }
+.tabla-planes th, .tabla-planes td { padding: .65rem .75rem; border-color: var(--pl-borde); vertical-align: middle; }
+.tabla-planes thead th { background: var(--pl-fondo); font-weight: 700; }
+.celda-estado { display: inline-flex; align-items: center; gap: .3rem; font-weight: 600; white-space: nowrap; }
+.celda-estado.si { color: var(--pl-ok); }
+.celda-estado.no { color: var(--pl-tenue); }
+.celda-estado .icono { width: 1rem; height: 1rem; }
+
+.franja-previa { background: var(--pl-tarjeta); border: 1px solid var(--pl-acento); border-radius: 1rem;
+                 padding: .9rem 1rem; margin-bottom: 1.1rem; box-shadow: var(--pl-sombra); }
+.franja-previa-encabezado { display: flex; align-items: center; gap: .7rem; margin-bottom: .75rem; }
+.candado-circulo, .candado-avatar { width: 2.4rem; height: 2.4rem; border-radius: 50%; display: grid;
+                                    place-items: center; flex: none; background: var(--pl-acento-suave);
+                                    color: var(--pl-acento); }
+.franja-previa-acciones { display: grid; grid-template-columns: 1fr 1fr; gap: .55rem; }
+.franja-previa-acciones form, .franja-previa-acciones button, .franja-previa-acciones a { margin: 0; width: 100%;
+                                                                                          display: inline-flex;
+                                                                                          align-items: center;
+                                                                                          justify-content: center; }
+.demo-bloque { margin-top: .25rem; }
+.demo-burbuja-wa { background: var(--pl-ok-bg); color: var(--pl-ok); padding: .75rem .9rem;
+                   border-radius: .85rem; margin: .75rem 0 .9rem; font-size: .9rem; }
+.demo-metricas { display: grid; grid-template-columns: repeat(3, 1fr); gap: .5rem; text-align: center; }
+.demo-metrica { background: var(--pl-fondo); padding: .6rem .4rem; border-radius: .75rem; }
+.demo-metrica strong { display: block; font-size: 1.05rem; margin-top: .15rem; }
+
+.confirmacion-plan { text-align: center; padding: 1.5rem 1.25rem; }
+.icono-confirmacion { width: 3.2rem; height: 3.2rem; border-radius: 50%; margin: 0 auto .75rem;
+                      display: grid; place-items: center; background: var(--pl-ok-bg); color: var(--pl-ok); }
+
+.aviso-plan-discreto { display: flex; justify-content: space-between; align-items: center; gap: .5rem;
+                       padding: .65rem .9rem; background: var(--pl-tarjeta); border: 1px solid var(--pl-borde);
+                       border-radius: .9rem; font-size: .84rem; color: var(--pl-tenue); margin-bottom: 1rem;
+                       min-height: 3rem; flex-wrap: wrap; }
+.aviso-plan-discreto a { font-weight: 700; text-decoration: none; white-space: nowrap; }
+
+.mensaje-limite { display: flex; justify-content: space-between; align-items: center; gap: .75rem;
+                  flex-wrap: wrap; border: 1px solid var(--pl-acento); }
+.mensaje-limite span { flex: 1 1 14rem; }
+.mensaje-limite a[role=button] { display: inline-flex; align-items: center; justify-content: center; }
+
+.medidores-uso { margin-top: .85rem; padding-top: .75rem; border-top: 1px solid var(--pl-borde);
+                 display: flex; flex-direction: column; gap: .65rem; }
+.medidor-texto { display: flex; justify-content: space-between; align-items: center; gap: .5rem;
+                 font-size: .84rem; font-weight: 600; margin-bottom: .28rem; }
+.barra-uso { height: .45rem; background: var(--pl-fondo); border-radius: 1rem; overflow: hidden; }
+.barra-uso span { display: block; height: 100%; background: var(--pl-acento); border-radius: 1rem; }
+.barra-uso span.alerta { background: var(--pl-flujo-proceso); }
+.barra-uso span.lleno { background: var(--pl-peligro); }
+
+/* Descripción breve en la tarjeta de orden (1 línea con puntos suspensivos) */
+.tarjeta .descripcion-corta {
+  margin: .18rem 0 0;
+  font-size: .86rem;
+  color: var(--pico-color);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.contador-fila {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: .5rem;
+}

@@ -1,0 +1,172 @@
+{% extends "base.html" %}
+{% block titulo %}{{ detalle.titulo }} · Vista previa{% endblock %}
+
+{% block contenido %}
+<section class="franja-previa" aria-label="Información del plan requerido">
+  <div class="franja-previa-encabezado">
+    <span class="candado-circulo" aria-hidden="true">
+      <svg class="icono"><use href="#i-candado"/></svg>
+    </span>
+    <div>
+      <strong>Vista previa del plan {{ plan_requerido.nombre }}</strong>
+      <p class="tenue" style="margin:.15rem 0 0;font-size:.86rem">
+        Datos de ejemplo fijos · aún no se realiza ningún cobro.
+      </p>
+    </div>
+  </div>
+  <div class="franja-previa-acciones">
+    <a href="{{ url_for('planes.inicio') }}" role="button" class="secondary outline boton-tactil">Ver planes</a>
+    <form method="post" action="{{ url_for('planes.solicitar') }}">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+      <input type="hidden" name="plan" value="{{ plan_requerido.clave }}">
+      <button type="submit" class="boton-tactil">Quiero este plan</button>
+    </form>
+  </div>
+</section>
+
+<h1>{{ detalle.titulo }}</h1>
+<p class="subtitulo">{{ detalle.resumen }}</p>
+
+{% if modulo == "mensaje-propio" %}
+<article class="demo-bloque">
+  <label for="demo-plantilla"><strong>Plantilla de mensaje de WhatsApp</strong></label>
+  <p class="ayuda" style="margin-top:.15rem">
+    Variables disponibles: <code>{nombre}</code>, <code>{folio}</code>, <code>{negocio}</code>
+  </p>
+  <textarea id="demo-plantilla" rows="4" disabled>Hola {nombre}, en {negocio} ya tenemos lista tu orden {folio}. Pasa por ella en nuestro horario de 9:00 a 19:00. ¡Te esperamos!</textarea>
+  <div class="demo-burbuja-wa">
+    <small class="tenue">Así lo verá tu cliente en WhatsApp:</small>
+    <p style="margin:.25rem 0 0">
+      «Hola María, en Lavandería La Estrella ya tenemos lista tu orden LAV-0018. Pasa por ella en nuestro horario de 9:00 a 19:00. ¡Te esperamos!»
+    </p>
+  </div>
+  <button type="button" class="boton-ancho boton-tactil" disabled>Guardar mensaje personalizado</button>
+</article>
+
+{% elif modulo == "recordatorio" %}
+<article class="demo-bloque">
+  <label style="display:flex;align-items:center;gap:.6rem;font-weight:700">
+    <input type="checkbox" checked disabled>
+    Recordar a los 3 días si no recogen
+  </label>
+  <label for="demo-dias" style="margin-top:.75rem">Días después de marcar «Listo»</label>
+  <select id="demo-dias" disabled>
+    <option selected>3 días después</option>
+  </select>
+  <div class="demo-burbuja-wa">
+    <small class="tenue">Mensaje de ejemplo listo para enviar con un toque:</small>
+    <p style="margin:.25rem 0 0">
+      «Hola María, te recordamos de Lavandería La Estrella que tu orden LAV-0012 sigue lista para recoger. ¡Gracias!»
+    </p>
+  </div>
+  <button type="button" class="boton-ancho boton-tactil" disabled>Activar recordatorios</button>
+</article>
+
+{% elif modulo == "marca" %}
+<article class="demo-bloque">
+  <label for="demo-logo"><strong>Logotipo del negocio</strong></label>
+  <input type="file" id="demo-logo" disabled>
+  <label for="demo-color"><strong>Color distintivo de tu marca</strong></label>
+  <input type="color" id="demo-color" value="#0f766e" disabled>
+
+  <p style="margin:.75rem 0 .4rem;font-weight:700">Vista previa en tus órdenes:</p>
+  <div class="tarjeta" style="border-left:4px solid var(--pl-acento)">
+    <div class="fecha estado-listo"><b>18</b><small>nov</small></div>
+    <div class="info">
+      <span class="titulo">LAV-0042 <span class="etiqueta estado-listo">Listo</span></span>
+      <span class="detalle">María López · Sello y color del negocio aplicados</span>
+    </div>
+  </div>
+  <button type="button" class="boton-ancho boton-tactil" style="margin-top:.85rem" disabled>Guardar identidad visual</button>
+</article>
+
+{% elif modulo == "estados" %}
+<article class="demo-bloque">
+  <p style="margin:0 0 .6rem"><strong>Flujo de estados por giro (ejemplo de Sastrería):</strong></p>
+  <div class="menu-lista" style="margin-bottom:.85rem">
+    {% for paso in ["Toma de medidas", "Corte", "Prueba", "Listo"] %}
+    <div class="fila">
+      <span><strong>{{ loop.index }}.</strong> {{ paso }}</span>
+      <input type="text" value="{{ paso }}" disabled style="margin:0;max-width:11rem">
+    </div>
+    {% endfor %}
+  </div>
+  <button type="button" class="outline boton-ancho boton-tactil" disabled>+ Agregar estado al flujo</button>
+</article>
+
+{% elif modulo == "ticket" %}
+<article class="demo-bloque demo-ticket">
+  <div style="text-align:center;border-bottom:1px dashed var(--pl-borde);padding-bottom:.65rem;margin-bottom:.65rem">
+    <strong>Lavandería La Estrella</strong><br>
+    <small class="tenue">Folio: LAV-0018 · 14/11/2026</small>
+  </div>
+  <div class="fila"><span>Cliente</span><strong>María López</strong></div>
+  <div class="fila"><span>Lavado por kilo (4 kg)</span><strong>$120.00</strong></div>
+  <div class="fila"><span>Edredón matrimonial (1 pza)</span><strong>$120.00</strong></div>
+  <div class="fila"><span><strong>Total</strong></span><strong>$240.00</strong></div>
+  <p class="tenue" style="font-size:.85rem;text-align:center;margin:.75rem 0">
+    Hasta {{ limites.fuerte.tickets_mes }} tickets al mes en Punto Fuerte ({{ limites.cumbre.tickets_mes }} en Punto Cumbre).
+  </p>
+  <button type="button" class="boton-ancho boton-tactil" disabled>Imprimir / PDF</button>
+</article>
+
+{% elif modulo == "reporte" %}
+<article class="demo-bloque">
+  <div class="demo-metricas">
+    <div class="demo-metrica"><small class="tenue">Ventas (7 días)</small><strong>$4,850</strong></div>
+    <div class="demo-metrica"><small class="tenue">Entregadas</small><strong>38 órdenes</strong></div>
+    <div class="demo-metrica"><small class="tenue">Ticket promedio</small><strong>$127</strong></div>
+  </div>
+  <section class="semana" style="margin:.85rem 0">
+    <div class="cabeza"><strong>Ingresos por día (ejemplo)</strong><span>Últimos 7 días</span></div>
+    <div class="barras">
+      {% for letra, h in [("L", 45), ("M", 60), ("M", 50), ("J", 75), ("V", 90), ("S", 100), ("D", 35)] %}
+      <div class="{{ 'hoy' if letra == 'S' }}"><b style="height:{{ h }}%"></b><small>{{ letra }}</small></div>
+      {% endfor %}
+    </div>
+  </section>
+  <button type="button" class="outline boton-ancho boton-tactil" disabled>Descargar reporte semanal</button>
+</article>
+
+{% elif modulo == "historial" %}
+<article class="demo-bloque">
+  <div class="fila" style="padding-top:0">
+    <span class="avatar" aria-hidden="true">ML</span>
+    <div class="enlace-fila">
+      <strong>María López</strong><br>
+      <small class="tenue">993 123 4567 · 14 órdenes registradas · Cliente frecuente</small>
+    </div>
+  </div>
+  <p style="margin:.75rem 0 .4rem;font-weight:700">Órdenes anteriores de ejemplo:</p>
+  <div class="menu-lista" style="margin-bottom:.85rem">
+    <div class="fila"><span><strong>LAV-0018</strong> · Lavado 4 kg</span><span class="etiqueta estado-entregado">02/11/2026</span></div>
+    <div class="fila"><span><strong>LAV-0011</strong> · Edredón 1 pza</span><span class="etiqueta estado-entregado">19/10/2026</span></div>
+    <div class="fila"><span><strong>LAV-0004</strong> · Planchado 6 pzas</span><span class="etiqueta estado-entregado">03/09/2026</span></div>
+  </div>
+  <button type="button" class="outline boton-ancho boton-tactil" disabled>Buscar en todo el historial</button>
+</article>
+
+{% elif modulo == "equipo" %}
+<article class="demo-bloque">
+  <label for="demo-sucursal"><strong>Sucursal activa</strong></label>
+  <select id="demo-sucursal" disabled>
+    <option selected>Sucursal Centro (Principal)</option>
+    <option>Sucursal Norte</option>
+  </select>
+  <p style="margin:.5rem 0 .4rem;font-weight:700">Equipo con acceso (ejemplo):</p>
+  <div class="menu-lista" style="margin-bottom:.85rem">
+    <div class="fila">
+      <span class="avatar" aria-hidden="true">AG</span>
+      <span class="enlace-fila"><strong>Ana Gómez</strong><br><small class="tenue">Mostrador · Recibir y entregar órdenes</small></span>
+      <span class="etiqueta estado-listo">Activo</span>
+    </div>
+    <div class="fila">
+      <span class="avatar" aria-hidden="true">CR</span>
+      <span class="enlace-fila"><strong>Carlos Ruiz</strong><br><small class="tenue">Operación · Cambiar estados en taller</small></span>
+      <span class="etiqueta estado-listo">Activo</span>
+    </div>
+  </div>
+  <button type="button" class="outline boton-ancho boton-tactil" disabled>+ Invitar empleado</button>
+</article>
+{% endif %}
+{% endblock %}

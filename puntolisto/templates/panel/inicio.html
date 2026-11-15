@@ -18,32 +18,46 @@
 {# ---------- Tarjeta principal (estilo e-wallet) + barra de flujo (estilo finanzas) ---------- #}
 <section class="hero" aria-label="Resumen de pendientes">
   <div class="fila-hero">
-    <span>Órdenes pendientes</span>
+    <span>{{ voc('ordenes', True) }} pendientes</span>
     {% if urgentes %}
     <a class="urgentes" href="{{ url_for('ordenes.lista', estado='atencion') }}">
-      <svg class="icono" style="width:.9rem;height:.9rem" aria-hidden="true"><use href="#i-reloj"/></svg>{{ urgentes }} urgente{{ "s" if urgentes != 1 }}
+      <svg class="icono" style="width:.9rem;height:.9rem" aria-hidden="true">
+        <use href="#i-reloj" />
+      </svg>{{ urgentes }} urgente{{ "s" if urgentes != 1 }}
     </a>
     {% endif %}
   </div>
-  <p class="cifra">{{ total }} <small>{{ "orden" if total == 1 else "órdenes" }}</small></p>
-  <div class="flujo" role="img" aria-label="{{ conteo.recibido }} recibidas, {{ conteo.en_proceso }} en proceso, {{ conteo.listo }} listas">
+  <p class="cifra">{{ total }} <small>{{ voc('orden') if total == 1 else voc('ordenes') }}</small></p>
+  <div class="flujo" role="img"
+    aria-label="{{ conteo.recibido }} recibidas, {{ conteo.en_proceso }} en proceso, {{ conteo.listo }} listas">
     {% for estado in ["recibido", "en_proceso", "listo"] if conteo[estado] %}
     <span class="f-{{ estado }}" style="width: {{ flujo[estado] }}%"></span>
     {% endfor %}
   </div>
   <div class="leyenda">
-    <a href="{{ url_for('ordenes.lista', estado='recibido') }}"><i style="background:var(--pl-flujo-recibido)"></i>{{ conteo.recibido }} recibida{{ 's' if conteo.recibido != 1 }}</a>
-    <a href="{{ url_for('ordenes.lista', estado='en_proceso') }}"><i style="background:var(--pl-flujo-proceso)"></i>{{ conteo.en_proceso }} en proceso</a>
-    <a href="{{ url_for('ordenes.lista', estado='listo') }}"><i style="background:var(--pl-flujo-listo)"></i>{{ conteo.listo }} lista{{ 's' if conteo.listo != 1 }}</a>
+    <a href="{{ url_for('ordenes.lista', estado='recibido') }}"><i style="background:var(--pl-flujo-recibido)"></i>{{
+      conteo.recibido }} recibida{{ 's' if conteo.recibido != 1 }}</a>
+    <a href="{{ url_for('ordenes.lista', estado='en_proceso') }}"><i style="background:var(--pl-flujo-proceso)"></i>{{
+      conteo.en_proceso }} en proceso</a>
+    <a href="{{ url_for('ordenes.lista', estado='listo') }}"><i style="background:var(--pl-flujo-listo)"></i>{{
+      conteo.listo }} lista{{ 's' if conteo.listo != 1 }}</a>
   </div>
 </section>
 
 {# ---------- Accesos rápidos (estilo e-wallet) ---------- #}
 <nav class="accesos" aria-label="Accesos rápidos">
-  <a href="{{ url_for('ordenes.nueva') }}"><span class="circulo"><svg aria-hidden="true"><use href="#i-mas"/></svg></span>Nueva orden</a>
-  <a href="{{ url_for('clientes.nuevo') }}"><span class="circulo"><svg aria-hidden="true"><use href="#i-usuario-mas"/></svg></span>Nuevo cliente</a>
-  <a href="{{ url_for('ordenes.lista') }}"><span class="circulo"><svg aria-hidden="true"><use href="#i-buscar"/></svg></span>Buscar</a>
-  <a href="{{ url_for('negocio.catalogo') }}"><span class="circulo"><svg aria-hidden="true"><use href="#i-catalogo"/></svg></span>Catálogo</a>
+  <a href="{{ url_for('ordenes.nueva') }}"><span class="circulo"><svg aria-hidden="true">
+        <use href="#i-mas" />
+      </svg></span>Nueva {{ voc('orden') }}</a>
+  <a href="{{ url_for('clientes.nuevo') }}"><span class="circulo"><svg aria-hidden="true">
+        <use href="#i-usuario-mas" />
+      </svg></span>Nuevo cliente</a>
+  <a href="{{ url_for('ordenes.lista') }}"><span class="circulo"><svg aria-hidden="true">
+        <use href="#i-buscar" />
+      </svg></span>Buscar</a>
+  <a href="{{ url_for('negocio.catalogo') }}"><span class="circulo"><svg aria-hidden="true">
+        <use href="#i-catalogo" />
+      </svg></span>Catálogo</a>
 </nav>
 
 {# ---------- Órdenes por prioridad ---------- #}
@@ -53,12 +67,12 @@
   <p class="tenue" style="margin:.25rem 0 0">No tienes órdenes pendientes. Registra una con el botón <b>+</b>.</p>
 </article>
 {% else %}
-  {% for titulo, lista in secciones %}
-  <h2 class="seccion">{{ titulo }} <small>{{ lista|length }}</small></h2>
-  <div class="lista">
-    {% for orden in lista %}{{ tarjeta_orden(orden, url_for('panel.inicio')) }}{% endfor %}
-  </div>
-  {% endfor %}
+{% for titulo, lista in secciones %}
+<h2 class="seccion">{{ titulo }} <small>{{ lista|length }}</small></h2>
+<div class="lista">
+  {% for orden in lista %}{{ tarjeta_orden(orden, url_for('panel.inicio')) }}{% endfor %}
+</div>
+{% endfor %}
 {% endif %}
 
 {# ---------- Entregas de la semana (estilo finanzas) ---------- #}
@@ -75,4 +89,12 @@
     {% endfor %}
   </div>
 </section>
+
+<div class="aviso-plan-discreto">
+  <span>
+    Estás en <strong>{{ PLAN_ACTUAL_INFO.nombre }}</strong>
+    {% if medidor_ordenes %} · {{ medidor_ordenes.texto }}{% endif %}
+  </span>
+  <a href="{{ url_for('planes.inicio') }}">Ver planes →</a>
+</div>
 {% endblock %}

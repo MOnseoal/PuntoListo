@@ -39,7 +39,14 @@
   <main class="container">
     {% with mensajes = get_flashed_messages(with_categories=true) %}
       {% for categoria, texto in mensajes %}
+        {% if categoria == "limite" %}
+        <div class="mensaje info mensaje-limite" role="status">
+          <span>{{ texto }}</span>
+          <a href="{{ url_for('planes.inicio') }}" role="button" class="outline boton-chico boton-tactil">Ver planes</a>
+        </div>
+        {% else %}
         <div class="mensaje {{ categoria }}" role="alert">{{ texto }}</div>
+        {% endif %}
       {% endfor %}
     {% endwith %}
 
@@ -54,9 +61,9 @@
       <svg class="icono" aria-hidden="true"><use href="#i-panel"/></svg>Inicio
     </a>
     <a href="{{ url_for('ordenes.lista') }}" {% if seccion == 'ordenes' and request.endpoint != 'ordenes.nueva' %}aria-current="page"{% endif %}>
-      <svg class="icono" aria-hidden="true"><use href="#i-ordenes"/></svg>Órdenes
+      <svg class="icono" aria-hidden="true"><use href="#i-ordenes"/></svg>{{ voc('ordenes', True) }}
     </a>
-    <a href="{{ url_for('ordenes.nueva') }}" class="central" aria-label="Nueva orden">
+    <a href="{{ url_for('ordenes.nueva') }}" class="central" aria-label="Nueva {{ voc('orden') }}">
       <span><svg class="icono" aria-hidden="true"><use href="#i-mas"/></svg></span>
     </a>
     <a href="{{ url_for('clientes.lista') }}" {% if seccion == 'clientes' %}aria-current="page"{% endif %}>

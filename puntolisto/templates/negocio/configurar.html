@@ -28,13 +28,20 @@
 
     <fieldset>
       <legend>Giro</legend>
-      {% for clave, texto in GIROS.items() %}
+      {% for clave, texto in LISTA_GIROS %}
       <label>
         <input type="radio" name="giro" value="{{ clave }}" {% if datos.giro == clave %}checked{% endif %}>
         {{ texto }}
       </label>
       {% endfor %}
     </fieldset>
+
+    <div id="campo-giro-otro" class="{{ '' if datos.giro == 'otro' else 'oculto-js' }}">
+      <label for="giro_otro">¿A qué se dedica tu negocio? (opcional)</label>
+      <input type="text" id="giro_otro" name="giro_otro" value="{{ datos.giro_otro or '' }}"
+             maxlength="40" placeholder="Ej. Reparación de calzado, joyería, imprenta…">
+      <p class="ayuda">Solo aplica si elegiste «Otro» (máximo 40 caracteres).</p>
+    </div>
 
     <label for="telefono">Teléfono del negocio (opcional)</label>
     <input type="tel" id="telefono" name="telefono" value="{{ datos.telefono }}"

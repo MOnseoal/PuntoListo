@@ -9,7 +9,7 @@ from pathlib import Path
 from flask import Blueprint, redirect, send_from_directory, url_for
 
 CARPETA = Path(__file__).parent
-VERSION = "6"  # súbela cuando cambies app.css o app.js para que los teléfonos descarguen lo nuevo
+VERSION = "9"  # súbela cuando cambies app.css o app.js para que los teléfonos descarguen lo nuevo
 EXTENSIONES = {".css", ".js", ".png"}
 
 bp = Blueprint("recursos", __name__)

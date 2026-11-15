@@ -4,7 +4,15 @@
 {% block contenido %}
 <div class="saludo">
   <span class="avatar" aria-hidden="true">{{ comercio.nombre|iniciales }}</span>
-  <div><h1>Ajustes</h1><p>{{ correo }}</p></div>
+  <div>
+    <h1>Ajustes</h1>
+    <p>
+      {% if comercio.giro == 'otro' and comercio.get('giro_otro') %}
+      <strong>{{ comercio.giro_otro }}</strong> ·
+      {% endif %}
+      {{ correo }}
+    </p>
+  </div>
 </div>
 
 <h2 class="seccion">Apariencia</h2>
@@ -43,7 +51,13 @@
     <input type="tel" id="telefono" name="telefono" value="{{ datos.telefono }}" inputmode="numeric"
            placeholder="993 123 4567">
 
-    <div class="fila"><span class="tenue">Giro</span><span>{{ GIROS[comercio.giro] }}</span></div>
+    <div class="fila">
+      <span class="tenue">Giro</span>
+      <span>
+        {{ GIROS.get(comercio.giro, 'Otro') }}
+        {% if comercio.giro == 'otro' and comercio.get('giro_otro') %}· {{ comercio.giro_otro }}{% endif %}
+      </span>
+    </div>
     <div class="fila"><span class="tenue">Folios</span><span>{{ comercio.abreviatura }}-0001, {{ comercio.abreviatura }}-0002…</span></div>
     <p class="ayuda" style="margin-top:.5rem">El giro y la abreviatura no se cambian para mantener tus folios en orden.</p>
 
@@ -59,6 +73,56 @@
       <small class="tenue">{{ total_servicios }} {{ "servicio activo" if total_servicios == 1 else "servicios activos" }}</small></span>
     <span class="tenue" aria-hidden="true">›</span>
   </a>
+</div>
+
+<h2 class="seccion">Tu plan</h2>
+<article class="tarjeta-mi-plan" style="margin-top:0">
+  <div class="fila" style="border:0;padding:0">
+    <div>
+      <span class="etiqueta estado-recibido">Tu plan actual</span>
+      <strong style="display:block;font-size:1.1rem;margin-top:.25rem">{{ PLAN_ACTUAL_INFO.nombre }}</strong>
+      <small class="tenue">{{ PLAN_ACTUAL_INFO.frase }}</small>
+    </div>
+    <a href="{{ url_for('planes.inicio') }}" role="button" class="outline boton-chico boton-tactil">Ver planes</a>
+  </div>
+
+  {% if uso_plan %}
+  <div class="medidores-uso">
+    {% for clave in ["ordenes_mes", "clientes", "servicios"] %}
+    {% set m = uso_plan[clave] %}
+    <div class="medidor-item">
+      <div class="medidor-texto">
+        <span>{{ m.texto }}</span>
+        {% if m.alerta %}
+        <span class="etiqueta {{ 'alerta-atrasada' if m.lleno else 'alerta-hoy' }}">{{ "Límite alcanzado" if m.lleno else "Cerca del límite" }}</span>
+        {% endif %}
+      </div>
+      <div class="barra-uso" role="progressbar" aria-valuenow="{{ m.usados }}" aria-valuemin="0" aria-valuemax="{{ m.tope }}" aria-label="{{ m.titulo }}">
+        <span class="{{ 'lleno' if m.lleno else ('alerta' if m.alerta else '') }}" style="width: {{ m.porcentaje }}%"></span>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+  {% endif %}
+</article>
+
+<h2 class="seccion">Funciones de los planes</h2>
+<div class="menu-lista">
+  {% for modulo, clave_plan in MODULOS_VISTA_PREVIA.items() %}
+  {% set info_modulo = DETALLES_VISTA_PREVIA[modulo] %}
+  {% set info_plan = PLANES_POR_CLAVE[clave_plan] %}
+  <a class="fila fila-tactil" href="{{ url_for('planes.vista_previa', modulo=modulo) }}">
+    <span class="avatar candado-avatar" aria-hidden="true">
+      <svg class="icono" style="width:1.1rem;height:1.1rem"><use href="#i-candado"/></svg>
+    </span>
+    <span class="enlace-fila">
+      <strong>{{ info_modulo.titulo }}</strong><br>
+      <small class="tenue">{{ info_modulo.resumen }}</small>
+    </span>
+    <span class="etiqueta {{ 'estado-en_proceso' if clave_plan == 'fuerte' else 'insignia-cumbre' }}">{{ info_plan.etiqueta_corta }}</span>
+    <span class="tenue" aria-hidden="true">›</span>
+  </a>
+  {% endfor %}
 </div>
 
 <h2 class="seccion">App</h2>

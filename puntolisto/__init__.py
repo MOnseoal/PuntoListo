@@ -30,6 +30,7 @@ def create_app(config_extra: dict | None = None) -> Flask:
     from .clientes.routes import bp as clientes_bp
     from .negocio.routes import bp as negocio_bp
     from .ordenes.routes import bp as ordenes_bp
+    from .planes.routes import bp as planes_bp
     from .recursos import VERSION as VERSION_RECURSOS
     from .recursos import bp as recursos_bp
     from .panel.routes import bp as panel_bp
@@ -38,6 +39,7 @@ def create_app(config_extra: dict | None = None) -> Flask:
     app.register_blueprint(clientes_bp)
     app.register_blueprint(negocio_bp)
     app.register_blueprint(ordenes_bp)
+    app.register_blueprint(planes_bp)
     app.register_blueprint(recursos_bp)
     app.jinja_env.globals["VERSION_RECURSOS"] = VERSION_RECURSOS
     app.register_blueprint(panel_bp)

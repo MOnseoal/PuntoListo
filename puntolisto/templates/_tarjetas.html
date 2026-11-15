@@ -20,6 +20,7 @@
       {% else %}<span class="etiqueta estado-{{ orden.estado }}">{{ ESTADOS[orden.estado] }}</span>{% endif %}
     </span>
     <span class="detalle">{{ orden.clientes.nombre if orden.clientes else "" }}</span>
+    {% if orden.descripcion %}<span class="detalle descripcion-corta">{{ orden.descripcion }}</span>{% endif %}
     {% if orden.resumen %}<span class="detalle">{{ orden.resumen }}</span>{% endif %}
   </a>
 

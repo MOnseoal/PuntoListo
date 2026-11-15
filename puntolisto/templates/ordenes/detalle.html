@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% block titulo %}Orden {{ orden.folio }}{% endblock %}
+{% block titulo %}{{ voc('orden', True) }} {{ orden.folio }}{% endblock %}
 
 {% set PASOS = [("recibido", "Recibida"), ("en_proceso", "En proceso"), ("listo", "Lista"), ("entregado", "Entregada")] %}
 {% set indice = ["recibido", "en_proceso", "listo", "entregado"].index(orden.estado) %}
@@ -9,7 +9,7 @@
 <section class="cabecera-orden">
   <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:.5rem">
     <div>
-      <p class="tenue" style="margin:0;font-size:.85rem">Orden</p>
+      <p class="tenue" style="margin:0;font-size:.85rem">{{ voc('orden', True) }}</p>
       <p class="folio">{{ orden.folio }}</p>
     </div>
     <div style="text-align:right">
@@ -73,8 +73,9 @@
   {% endfor %}
 </div>
 
-<h2 class="seccion">Datos de la orden</h2>
+<h2 class="seccion">Datos de la {{ voc('orden') }}</h2>
 <div class="menu-lista">
+  {% if orden.descripcion %}<div class="fila"><span class="tenue">¿Qué dejó?</span><span style="text-align:right">{{ orden.descripcion }}</span></div>{% endif %}
   <div class="fila"><span class="tenue">Recibida</span><span>{{ orden.creado_en|fecha_corta }}</span></div>
   <div class="fila"><span class="tenue">Entrega prometida</span>
     <span>{{ (orden.fecha_entrega|fecha_corta ~ " (" ~ orden.fecha_entrega|fecha_amigable ~ ")") if orden.fecha_entrega else "Sin fecha" }}</span></div>

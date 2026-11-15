@@ -1,7 +1,8 @@
 """Blueprint de clientes (ACT-13): alta, edición, consulta y búsqueda."""
-from flask import Blueprint, abort, flash, g, redirect, render_template, request, url_for
+from flask import Blueprint, abort, flash, g, redirect, render_template, request, session, url_for
 from postgrest.exceptions import APIError
 
+from .. import planes
 from .. import validaciones as v
 from ..etiquetas import telefono_legible
 from ..modelos import clientes
@@ -40,14 +41,19 @@ def lista():
 @negocio_requerido
 def nuevo():
     datos = {"nombre": "", "telefono": ""}
+    cid = g.comercio["id"]
+    en_limite = planes.limite_alcanzado("clientes", clientes.contar(g.sb, cid), session.get("email"))
+    aviso_limite = planes.mensaje_limite("clientes") if en_limite else None
 
     if request.method == "POST":
         datos, error = _validar(request.form)
-        if error:
+        if en_limite:
+            flash(planes.mensaje_limite("clientes"), "limite")
+        elif error:
             flash(error, "error")
         else:
             try:
-                cliente = clientes.crear(g.sb, g.comercio["id"], datos["nombre"], datos["telefono"])
+                cliente = clientes.crear(g.sb, cid, datos["nombre"], datos["telefono"])
             except APIError as e:
                 flash(MENSAJE_DUPLICADO if e.code == "23505" else "No se pudo guardar. Intenta de nuevo.",
                       "error")
@@ -57,7 +63,8 @@ def nuevo():
                     return redirect(url_for("ordenes.nueva", cliente_id=cliente["id"]))
                 return redirect(url_for("clientes.lista"))
 
-    return render_template("clientes/formulario.html", datos=datos, editando=False)
+    return render_template("clientes/formulario.html", datos=datos, editando=False,
+                           aviso_limite=aviso_limite)
 
 
 @bp.route("/<int:cliente_id>/editar", methods=["GET", "POST"])

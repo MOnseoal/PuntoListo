@@ -10,6 +10,20 @@ def listar(sb, comercio_id: int, solo_activos: bool = False) -> list[dict]:
     return respuesta.data or []
 
 
+def contar_activos(sb, comercio_id: int) -> int:
+    """Total de servicios activos en el catálogo del comercio."""
+    respuesta = (
+        sb.table("servicios")
+        .select("id", count="exact")
+        .eq("comercio_id", comercio_id)
+        .eq("activo", True)
+        .execute()
+    )
+    if getattr(respuesta, "count", None) is not None:
+        return int(respuesta.count)
+    return len(respuesta.data or [])
+
+
 def obtener(sb, comercio_id: int, servicio_id: int) -> dict | None:
     respuesta = (
         sb.table("servicios").select(COLUMNAS)

@@ -48,7 +48,13 @@ def iniciar_sesion(cliente, expira_en: int = 3600) -> None:
 
 @pytest.fixture(autouse=True)
 def sin_entregadas_por_defecto(monkeypatch):
-    """El panel también consulta las entregas de la semana; por defecto no hay
-    ninguna (cada prueba puede reemplazarlo). Así ninguna prueba sale a internet."""
+    """El panel y las altas consultan conteos en la BD; por defecto regresan 0
+    (cada prueba puede reemplazarlo). Así ninguna prueba sale a internet."""
     monkeypatch.setattr("puntolisto.modelos.ordenes.listar_entregadas",
                         lambda sb, cid, limite=50: [])
+    monkeypatch.setattr("puntolisto.modelos.clientes.contar",
+                        lambda sb, cid: 0)
+    monkeypatch.setattr("puntolisto.modelos.ordenes.contar_mes_actual",
+                        lambda sb, cid, hoy=None: 0)
+    monkeypatch.setattr("puntolisto.modelos.servicios.contar_activos",
+                        lambda sb, cid: 0)

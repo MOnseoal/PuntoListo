@@ -5,12 +5,15 @@ datos: guarda orden + servicios en una sola transacción y el trigger
 asigna el folio (ABREV-0001). Python nunca calcula el folio.
 """
 import re
+from datetime import date, datetime
+
+from ..etiquetas import HORA_MEXICO, hoy_mexico
 
 ESTADOS_ACTIVOS = ("recibido", "en_proceso", "listo")
 ORDEN_ESTADOS = ("recibido", "en_proceso", "listo", "entregado")
 
 COLUMNAS_DETALLE = (
-    "id, folio, estado, fecha_entrega, notas, creado_en, actualizado_en, "
+    "id, folio, estado, fecha_entrega, descripcion, notas, creado_en, actualizado_en, "
     "clientes(id, nombre, telefono), "
     "orden_servicios(id, cantidad, precio_unitario, servicios(nombre, tipo_cobro))"
 )
@@ -19,7 +22,7 @@ COLUMNAS_DETALLE = (
 # Columnas para las tarjetas: cliente con teléfono (para el botón de WhatsApp)
 # y un resumen de servicios.
 COLUMNAS_TARJETA = (
-    "id, folio, estado, fecha_entrega, creado_en, actualizado_en, "
+    "id, folio, estado, fecha_entrega, descripcion, creado_en, actualizado_en, "
     "clientes(nombre, telefono), orden_servicios(cantidad, servicios(nombre, tipo_cobro))"
 )
 
@@ -68,6 +71,43 @@ def listar_entregadas(sb, comercio_id: int, limite: int = 50) -> list[dict]:
     return listar(sb, comercio_id, ("entregado",), orden_por="actualizado_en", limite=limite)
 
 
+def rango_mes_mexico(hoy: date | None = None) -> tuple[datetime, datetime]:
+    """Inicio del mes actual e inicio del mes siguiente en hora del centro de México (UTC-6)."""
+    hoy = hoy or hoy_mexico()
+    inicio = datetime(hoy.year, hoy.month, 1, 0, 0, 0, tzinfo=HORA_MEXICO)
+    if hoy.month == 12:
+        fin = datetime(hoy.year + 1, 1, 1, 0, 0, 0, tzinfo=HORA_MEXICO)
+    else:
+        fin = datetime(hoy.year, hoy.month + 1, 1, 0, 0, 0, tzinfo=HORA_MEXICO)
+    return inicio, fin
+
+
+def contar_mes_actual(sb, comercio_id: int, hoy: date | None = None) -> int:
+    """Órdenes creadas en el mes calendario actual (hora de México UTC-6)."""
+    inicio, fin = rango_mes_mexico(hoy)
+    respuesta = (
+        sb.table("ordenes")
+        .select("id, creado_en", count="exact")
+        .eq("comercio_id", comercio_id)
+        .gte("creado_en", inicio.isoformat())
+        .lt("creado_en", fin.isoformat())
+        .execute()
+    )
+    if getattr(respuesta, "count", None) is not None:
+        return int(respuesta.count)
+    filas = respuesta.data or []
+    total = 0
+    for fila in filas:
+        marca = fila.get("creado_en") if isinstance(fila, dict) else None
+        if not marca:
+            total += 1
+            continue
+        creada = datetime.fromisoformat(str(marca).replace("Z", "+00:00")).astimezone(HORA_MEXICO)
+        if inicio <= creada < fin:
+            total += 1
+    return total
+
+
 def agrupar_por_estado(ordenes: list[dict]) -> dict[str, list[dict]]:
     grupos = {estado: [] for estado in ESTADOS_ACTIVOS}
     for orden in ordenes:
@@ -76,13 +116,14 @@ def agrupar_por_estado(ordenes: list[dict]) -> dict[str, list[dict]]:
 
 
 def crear(sb, cliente_id: int, servicios: list[dict], fecha_entrega: str | None,
-          notas: str | None) -> dict:
+          notas: str | None, descripcion: str | None = None) -> dict:
     """servicios: [{"servicio_id": 1, "cantidad": 3.5}, ...]. Devuelve {"id", "folio"}."""
     respuesta = sb.rpc("crear_orden", {
         "p_cliente_id": cliente_id,
         "p_servicios": servicios,
         "p_fecha_entrega": fecha_entrega,
         "p_notas": notas,
+        "p_descripcion": (descripcion or "").strip() or None,
     }).execute()
     return respuesta.data[0]
 

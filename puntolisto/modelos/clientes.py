@@ -31,6 +31,19 @@ def listar(sb, comercio_id: int, busqueda: str = "", limite: int = 200) -> list[
     return respuesta.data or []
 
 
+def contar(sb, comercio_id: int) -> int:
+    """Total de clientes registrados por el comercio."""
+    respuesta = (
+        sb.table("clientes")
+        .select("id", count="exact")
+        .eq("comercio_id", comercio_id)
+        .execute()
+    )
+    if getattr(respuesta, "count", None) is not None:
+        return int(respuesta.count)
+    return len(respuesta.data or [])
+
+
 def obtener(sb, comercio_id: int, cliente_id: int) -> dict | None:
     respuesta = (
         sb.table("clientes")

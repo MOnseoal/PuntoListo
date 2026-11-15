@@ -2,16 +2,15 @@
 aquí se traducen a lo que ve el comerciante."""
 from datetime import date, datetime, timedelta, timezone
 
+from flask import g, has_request_context
+
+from .giros import NOMBRES_GIROS, lista_giros, obtener_giro
+
 # Tabasco usa la hora del centro de México (UTC-6, sin horario de verano desde 2022).
 # Se usa un desfase fijo para no depender de la base de zonas horarias del servidor.
 HORA_MEXICO = timezone(timedelta(hours=-6))
 
-GIROS = {
-    "lavanderia": "Lavandería",
-    "sastreria": "Sastrería",
-    "taller": "Taller de reparación",
-    "otro": "Otro",
-}
+GIROS = NOMBRES_GIROS
 
 ESTADOS = {
     "recibido": "Recibido",
@@ -156,8 +155,39 @@ def cantidad_legible(cantidad, tipo_cobro: str) -> str:
     return f"{texto} {unidad}".strip()
 
 
+def plantilla_giro_actual() -> dict:
+    """Devuelve la plantilla del giro del comercio actual en sesión."""
+    giro = None
+    if has_request_context():
+        comercio = g.get("comercio") or {}
+        giro = comercio.get("giro")
+    return obtener_giro(giro)
+
+
+def voc(termino: str = "orden", mayuscula: bool = False) -> str:
+    """Devuelve el término del vocabulario según el giro del negocio actual."""
+    vocabulario = plantilla_giro_actual()["vocabulario"]
+    valor = vocabulario.get(termino, termino)
+    if mayuscula and valor:
+        return valor[:1].upper() + valor[1:]
+    return valor
+
+
 def registrar_etiquetas(app) -> None:
-    app.jinja_env.globals.update(GIROS=GIROS, ESTADOS=ESTADOS, TIPOS_COBRO=TIPOS_COBRO)
+    from . import planes
+
+    app.jinja_env.globals.update(
+        GIROS=GIROS,
+        LISTA_GIROS=lista_giros(),
+        ESTADOS=ESTADOS,
+        TIPOS_COBRO=TIPOS_COBRO,
+        PLAN_ACTUAL_INFO=planes.PLANES_POR_CLAVE[planes.PLAN_ACTUAL],
+        MODULOS_VISTA_PREVIA=planes.MODULOS_VISTA_PREVIA,
+        DETALLES_VISTA_PREVIA=planes.DETALLES_VISTA_PREVIA,
+        PLANES_POR_CLAVE=planes.PLANES_POR_CLAVE,
+        voc=voc,
+        plantilla_giro_actual=plantilla_giro_actual,
+    )
     app.jinja_env.filters["fecha_corta"] = fecha_corta
     app.jinja_env.filters["fecha_amigable"] = fecha_amigable
     app.jinja_env.globals["fecha_larga_hoy"] = fecha_larga_hoy
