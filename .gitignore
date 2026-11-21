@@ -14,5 +14,7 @@ __pycache__/
 
 # Editor / sistema
 .vscode/
+.cursor/
+*.mdc
 Thumbs.db
 .DS_Store

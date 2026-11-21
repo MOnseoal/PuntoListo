@@ -1,6 +1,6 @@
 # PuntoListo · ACT-11 · Base de datos (Supabase / PostgreSQL)
 
-> Documento de referencia para programar en Cursor. Guárdalo en el repositorio como `docs/ACT-11_base_de_datos.md` y el SQL como `docs/sql/001_esquema.sql`.
+> Documento técnico de referencia del esquema de base de datos (`docs/sql/001_esquema.sql`).
 
 ## 1. Decisiones de diseño
 
@@ -370,7 +370,7 @@ insert into public.plantillas_servicio (giro, nombre, tipo_cobro, precio) values
 
 ## 4. Diagrama entidad-relación
 
-Para verlo como imagen: pégalo en https://mermaid.live y exporta PNG/SVG. GitHub y Cursor también lo muestran en la vista previa del Markdown.
+Para verlo como imagen: pégalo en https://mermaid.live y exporta PNG/SVG. GitHub también lo muestra en la vista previa del Markdown.
 
 ```mermaid
 erDiagram
@@ -469,7 +469,7 @@ Casos ya probados con este esquema (PostgreSQL simulando Supabase):
 | 12 | Usuario sin sesión (`anon`) | "permission denied" |
 | 13 | Orden número 10 000 | Folio `LAV-10000` |
 
-## 6. Notas para programar en Python (Cursor)
+## 6. Notas de integración con Python
 
 - **Cliente de Supabase por petición, con el token del usuario.** Crear el cliente con `SUPABASE_URL` y `SUPABASE_KEY` (clave publishable/anon) y, antes de consultar, aplicar el token de la sesión: `cliente.postgrest.auth(access_token)`. Así `auth.uid()` funciona y RLS filtra solo. **Nunca** usar la clave `service_role`/`secret` en la app.
 - **No enviar `numero` ni `folio`** al crear órdenes: los asigna el trigger.
